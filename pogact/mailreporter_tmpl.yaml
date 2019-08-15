@@ -1,0 +1,14 @@
+# -*- coding: utf-8; -*-
+###
+### This file is sample configuration for MailReporter.py.
+###
+smtphost: "smtp.mail.yahoo.co.jp"
+smtpport: 587
+fromaddr: "no_reply@your.mail.domain"
+toaddrs:
+  - "rcpt1@some.mail.domain"
+  - "rcpt2@other.mail.domain"
+# subject: MUST BE set by CONSTRUCTOR
+smtpacct: "YourSMTPAccountName"
+smtppass: "YourSMTPAccountPassword"
+# secure method is not implemented.
