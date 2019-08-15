@@ -1,0 +1,27 @@
+# -*- encoding: utf-8; -*-
+###
+### Common user settings
+###
+FNJ_user:
+  - name: "ふー"
+    id: "foo"
+    pw: "foo's password"
+  - name: "ばー"
+    id: "bar"
+    pw: "bar's password"
+
+Rakuten_user:
+  - name: "ふー"
+    id: "foo"
+    pw: "foo's password"
+  - name: "ばー"
+    id: "bar"
+    pw: "bar's password"
+  - name: "ばず"
+    id: "baz"
+    pw: "baz's password"
+
+Infoseek_user:
+  - name: "ばー"
+    id: "bar"
+    pw: "bar's password"
