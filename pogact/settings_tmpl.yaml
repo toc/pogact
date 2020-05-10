@@ -2,7 +2,8 @@
 ###
 ### Common user settings
 ###
-FNJ_user:
+users:
+  FNJ:
   - name: "ふー"
     id: "foo"
     pw: "foo's password"
@@ -10,18 +11,25 @@ FNJ_user:
     id: "bar"
     pw: "bar's password"
 
-Rakuten_user:
-  - name: "ふー"
-    id: "foo"
-    pw: "foo's password"
-  - name: "ばー"
-    id: "bar"
-    pw: "bar's password"
-  - name: "ばず"
-    id: "baz"
-    pw: "baz's password"
+  Rakuten:
+    - name: "ふー"
+      id: "foo"
+      pw: "foo's password"
+    - name: "ばー"
+      id: "bar"
+      pw: "bar's password"
+    - name: "ばず"
+      id: "baz"
+      pw: "baz's password"
 
-Infoseek_user:
+  Infoseek:
   - name: "ばー"
     id: "bar"
     pw: "bar's password"
+
+services:
+  Rkeiba:
+  - "ふー"
+  RWebSearch:
+  - "ふー"
+  - "ばず"

@@ -8,10 +8,18 @@ from logging import Formatter, handlers, StreamHandler, getLogger, DEBUG
 # Reference: http://stackoverflow.com/questions/6810999/how-to-determine-file-function-and-line-number
 # @return frameInfo
 def frameinfo(stackIndex=3):
-    stack = inspect.stack()
-    if stackIndex >= len(stack):
-        return None
-    callerframerecord = stack[stackIndex]
+    stacks = inspect.stack()
+    stack_count = len(stacks)
+    if stackIndex > 0:
+        # Pick up stack from FIRST of array(=nearest call) if stackIndex > 0
+        if stackIndex >= stack_count:
+            return None
+    else:
+        # Pick up stack from LAST of array(=farest call) or 0 if stackIndex <= 0
+        stackIndex = stack_count + stackIndex
+        if stackIndex < 0:
+            return None
+    callerframerecord = stacks[stackIndex]
     frame = callerframerecord[0]
     info = inspect.getframeinfo(frame)
     return info
@@ -33,9 +41,10 @@ class Logger:
 
         # file
         level = DEBUG if flevel is None else flevel
-        handler = handlers.RotatingFileHandler(filename = f"{name}.log",
-                                               maxBytes = 1048576,
-                                               backupCount = 3)
+        handler = handlers.RotatingFileHandler(
+            filename = f"{name}.log", encoding=r'utf-8',
+            maxBytes = 1048576, backupCount = 3
+        )
         handler.setLevel(level)
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
