@@ -1,10 +1,9 @@
 @echo off
 REM
-REM
+REM Kicker script for rkeiba.py
 REM
 
-cd 'Path to script file'
-cd
+cd ..\pogact
 
-echo python rkeiba4_hl.py
-python rkeiba4_hl.py
+echo python rkeiba.py
+python rkeiba.py
