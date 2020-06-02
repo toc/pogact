@@ -22,7 +22,6 @@ import yaml
 from logutils import mailreporter
 
 
-
 class RWebSearch():
     """ """
     MODULE_NAME = 'RWebSearch'
@@ -31,7 +30,7 @@ class RWebSearch():
         self.driver = None
         self.wait = None
         self.pilot_record = []
-        self.logger = logger.Logger(self.MODULE_NAME, clevel=DEBUG, flevel=DEBUG)
+        self.logger = logger.Logger(self.MODULE_NAME, clevel=DEBUG, flevel=DEBUG, path=r'logs')
         try:
             with open('last_done.yaml', 'r', encoding='utf-8') as f:
                 self.last_done = yaml.safe_load(f)
@@ -58,13 +57,10 @@ class RWebSearch():
 
         msg = r''
         options = Options()
-        # 楽天ウェブ検索をインポート
-        options.add_extension("4.648_0.crx")
-        # 「Chrome は自動テスト ソフトウェアによって制御されています 」のメニューバーの非表示
-        # options.add_argument("--disable-infobars")
-        options.add_argument("disable-infobars")
-        # 画像非表示
-        options.add_argument("--blink-settings=imagesEnabled=false")
+        options.add_extension("4.648_0.crx")                                # 楽天ウェブ検索をインポート
+        # options.add_argument("--headless")        # 楽天Web検索はheadlessモード不可
+        options.add_argument("--blink-settings=imagesEnabled=false")        # 画像非表示
+        options.add_experimental_option("excludeSwitches" , ["enable-automation"])  # disable-infobars
         # pprint.pprint(options.extensions)  # dir(options))
         try:
             cdm = ChromeDriverManager()
@@ -72,8 +68,6 @@ class RWebSearch():
             logger.debug(f"  -- last_done.webdriver: {pprint.pformat(ld_webdriver)}")
             previous = ld_webdriver.get('Chrome',['',datetime.datetime.min])
             logger.debug(f"  -- get_download_path() == Re-use driver.")
-            # _, filename = cdm.get_download_url()
-            # dl_path = cdm.get_download_path()
             driver_path = previous[0]
 
             logger.debug(f"  driver_path: {driver_path}")
@@ -124,14 +118,9 @@ class RWebSearch():
 
         driver.get("http://search.yahoo.co.jp/realtime")
         time.sleep(1)
-        # wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "p.que_3 > a")))
-        # word_list = driver.find_elements_by_css_selector("p.que_3 > a")
-        #body > div.Top > article > section > ol:nth-child(1) > li:nth-child(1) > a
         wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#body > div.Top > article > section")))
         word_list = driver.find_elements_by_css_selector("#body > div.Top > article > section > ol > li > a")
         words = [a.text for a in word_list]
-        # word_list = driver.find_elements_by_css_selector("#body > div.Top > article > section > ol:nth-child(2) > a")
-        # words.extend( [a.text for a in word_list] ) 
         logger.debug(words)
         driver.switch_to.window(driver.window_handles[1])
         driver.close()
@@ -142,18 +131,6 @@ class RWebSearch():
         driver = self.driver
         logger = self.logger
         wait = self.wait
-
-        # # logout_link = driver.find_elements_by_class_name('rakuten-user-logout')
-        # logout_link = driver.find_elements_by_xpath(
-        #     '//*[@id="rakuten-membership"]/div/div[2]/div[2]/div/div[1]/div[2]/div'
-        # )
-        # logout_link_num = len(logout_link)
-        # logger.debug(f'  -- Num: {logout_link_num} <- XPATH: (omitted ... its too long)')
-        # if logout_link_num > 0:
-        #     logout_link[0].find_elements_by_xpath('a').click()
-        # else:
-        #     logger.error(f'  !! No logout link found.')
-        # return logout_link_num
 
         ### 楽天競馬のオートパイロットからパクリ
         driver.get("https://keiba.rakuten.co.jp/")
@@ -205,7 +182,6 @@ class RWebSearch():
             logger.debug(f'   (Wainting for (By.CLASS_NAME, "progress-message")')
             mes = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "progress-message"))).text
             logger.debug(f'   {mes}')
-            # logger.debug(f'   (Wainting for (By.ID, "curr-kuchisu-count")')
             # 検索画面のレイアウトが２種類できたみたい。 @20200418
             # progress-messageの表示確認が取れていれば、口数情報の取得位置を変えるだけでよさそう。
             # objects = driver.find_elements_by_id("curr-kuchisu-count")
@@ -217,16 +193,6 @@ class RWebSearch():
                 logger.debug(f"   Found: (By.ID, 'curr-kuchisu-count')")
                 cnt = driver.find_element_by_id("curr-kuchisu-count").text
             logger.debug(f'   検索実績: {cnt} 件目')
-            """
-            #ページクリック用：利用するかは各自にお任せします
-            int = random.randrange(10)
-            pageLinks = driver.find_elements_by_class_name("os-window")
-            actions = ActionChains(driver)
-            actions.move_to_element(pageLinks[int])
-            actions.perform()
-            pageLinks[int].click()
-            driver.back()
-            """
             if (int(cnt) >= 30):
                 logger.info(f"  本日実績が30口を超えました[{cnt}]")
                 break
@@ -251,12 +217,6 @@ class RWebSearch():
             return
         last_dones = self.last_done.get('RWebSearch',{})
 
-        # num_users = len(self.users)
-        # self.logger.info(f"ユーザ数（設定ファイル内）: {num_users}")
-        # if num_users <= 0:
-        #     logger.error(f'実行対象ユーザが登録されていません')
-        #     # self.tearDown()
-        #     return
         words = None
         need_report = 0
         today = datetime.datetime.strptime(
@@ -281,9 +241,6 @@ class RWebSearch():
                 continue
 
             # 実処理実行
-            # wk = {}
-            # for key in ('id', 'name'):
-            #     wk[key] = user.get(key,'')
             wk = {k:v for (k,v) in user.items() if k in ('name','id')}
             logger.info(f" Rakuten Web Search starts for {wk}")
             try:

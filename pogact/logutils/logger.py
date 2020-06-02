@@ -3,7 +3,7 @@
 import os
 import inspect
 from logging import Formatter, handlers, StreamHandler, getLogger, DEBUG
-
+from pathlib import Path
 
 # Reference: http://stackoverflow.com/questions/6810999/how-to-determine-file-function-and-line-number
 # @return frameInfo
@@ -26,7 +26,7 @@ def frameinfo(stackIndex=3):
 
 
 class Logger:
-    def __init__(self, name=__name__, clevel=None, flevel=None, annotate=True):
+    def __init__(self, name=__name__, clevel=None, flevel=None, annotate=True,path=None):
         self.logger = getLogger(name)
         self.logger.setLevel(DEBUG)
         self.annotate = annotate
@@ -40,9 +40,13 @@ class Logger:
         self.logger.addHandler(handler)
 
         # file
+        if path != None:
+            path = Path(path) if type(path) is str else path
+        path.mkdir(parents=True,exist_ok=True)
+        logfile = path / f"{name}.log"
         level = DEBUG if flevel is None else flevel
         handler = handlers.RotatingFileHandler(
-            filename = f"{name}.log", encoding=r'utf-8',
+            filename = str(logfile), encoding=r'utf-8',
             maxBytes = 1048576, backupCount = 3
         )
         handler.setLevel(level)

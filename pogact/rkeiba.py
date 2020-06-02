@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-# from selenium.webdriver.common.keys import Keys
-# from selenium.webdriver.support.ui import Select
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -13,25 +11,22 @@ from logging import DEBUG, INFO    # , WARNING, ERROR, CRITICAL
 import yaml
 import datetime
 import time
-# import sys
-# import re
 from logutils import logger
 from logutils import mailreporter
+
 
 class Rkeiba():
     def setup(self):
         options = Options()
         options.add_argument('-headless')
         self.driver = webdriver.Firefox(options=options)
-        # self.driver = webdriver.Ie('IEDriverServer.exe')
         self.driver.implicitly_wait(20)
         self.wait = WebDriverWait(self.driver, 20)
         self.pilot_record = []
         self.accept_next_alert = True
-        self.logger = logger.Logger('Rkeiba', clevel=INFO, flevel=DEBUG)
+        self.logger = logger.Logger('Rkeiba', clevel=INFO, flevel=DEBUG, path=r'logs')
         self.reporter = mailreporter.MailReporter(r'smtpconf.yaml', r'RKeiba')
 
-        # self.today = datetime.datetime.today()
         self.today = datetime.datetime.strptime(
             datetime.datetime.now().strftime("%Y-%m-%d 00:00:00"),
             "%Y-%m-%d 00:00:00",
@@ -47,8 +42,6 @@ class Rkeiba():
                 self.config = yaml.safe_load(f)
         except:
             self.config = {}
-        # num_users = len(self.config.get('users',[]))
-        # self.logger.info(f"ユーザ数（設定ファイル内）: {num_users}")
         return
 
     def pilot_login(self, user):
@@ -241,8 +234,8 @@ class Rkeiba():
         # ==============================
         try:
             with open('last_done.yaml', 'w', encoding='utf-8') as f:
-                logger.debug(f" -- {self.last_done}")
-                f.write(yaml.dump(self.last_done))
+                logger.debug(f" -- {self.last_done['Rkeiba']}")
+                yaml.dump(self.last_done,f,encoding=r'utf-8',allow_unicode=True)
                 logger.info(f" 実施記録を保存しました")
         except:
             logger.info(f" 実施記録を保存できませんでした(ignore)")
