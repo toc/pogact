@@ -1,4 +1,4 @@
-import time
+#import time
 import re
 import pprint
 from selenium.webdriver.chrome.options import Options
@@ -8,6 +8,7 @@ from selenium.webdriver.common.keys import Keys
 import yaml
 import RPAbase.RakutenBase
 import logutils.AppDict
+from logutils import mailreporter
 
 class MailDePoint(RPAbase.RakutenBase.RakutenBase):
     # def pilot_setup(self):
@@ -20,6 +21,7 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
             r'MailDePoint', __file__,
             r'0.1', r'$Rev$', r'Alpha'
         )
+        self.reporter = mailreporter.MailReporter(r'smtpconf.yaml', self.appdict.name)
 
     def prepare(self):
         self.super.prepare(self.appdict.name)
@@ -33,9 +35,115 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
         options.add_argument(r'--blink-settings=imagesEnabled=false')
         options.add_experimental_option('useAutomationExtension', False)
         options.add_experimental_option('excludeSwitches', ['enable-automation'])
-        super(MailDePoint, self).pilot_setup(options)
+        return super(MailDePoint, self).pilot_setup(options)
 
-    def pilot_internal1(self):
+    def pilot_unacquired1(self):
+        """
+        """
+        self.logger.debug(f"  @Start pilot_unacquired1..")
+        # ==============================
+        driver = self.driver
+        wait = self.wait
+        logger = self.logger
+        results = []
+
+        try:
+            logger.debug(f"  - Move to top page of mail_de_point")
+            # ------------------------------
+            driver.get("https://member.pointmail.rakuten.co.jp/box")
+            before_txt = driver.find_element_by_css_selector('#mailContents > div.leftCol > dl > dd.pointNotGetCount').text
+            before_txt += '/' + driver.find_element_by_css_selector('#mailContents > div.leftCol > dl > dd.preGrantPoint').text
+            logger.debug(f"  -- Grant staus before: {before_txt}.")
+
+            logger.debug(f"  - Switch to メールボックス")
+            # ------------------------------
+            driver.find_element_by_link_text(u"メールボックス").click()
+
+            logger.debug(f"  - Switch to メールボックス/未獲得")
+            # ------------------------------
+            driver.find_element_by_link_text(u"未獲得").click()
+            logger.debug(f'  -- wait for visibility_of_element_located: CLASS_NAME:mailboxBox')
+            wait.until(EC.visibility_of_element_located((By.CLASS_NAME,"mailboxBox")))
+
+            mailbox = driver.find_element_by_class_name("mailboxBox")
+            mails = mailbox.find_elements_by_xpath("ul/li")
+            logger.debug(f'  - Number of mails: {len(mails)}.')
+
+            logger.debug(f"  - Treat each mails...")
+            # ------------------------------
+            logger.debug(f"  -- Skip advertisements.")
+            for mail in mails:
+                class_value = mail.get_attribute("class")
+                logger.debug(f'  -- class_value: >{class_value}<.')
+                if class_value != "teamSiteSubject":
+                    # Advertisements are over.
+                    break
+
+            logger.debug(f"  - Try to find the first mail with points.")
+            # ------------------------------
+            divs = mail.find_elements_by_xpath("div")
+            if len(divs) == 0:
+                logger.debug(f"  -- There are advertisements only.  Exit.")
+                pass
+            else:
+                alt_text = divs[0].find_element_by_xpath("img").get_attribute("alt")
+                content = divs[1].find_element_by_xpath("a/p").text
+                logger.debug(f"  -- Found: {alt_text} {content}.")
+                logger.debug(f"  - １件目を開く.")
+                # ------------------------------
+                divs[1].find_element_by_xpath("a").click()
+                while True:
+                    pager = driver.find_elements_by_class_name("pager")
+                    print(driver.find_element_by_xpath(r'//*[@id="mailContents"]/div[2]/div[1]/div[2]/p'))
+                    point_urls = driver.find_elements_by_class_name("point_url")
+                    point_urls_num = len(point_urls)
+                    if point_urls_num > 0:
+                        logger.debug(f"  -- ポイント対象URL(全{point_urls_num}件の先頭のみ)をクリック.")
+                        # ------------------------------
+                        point_url = point_urls[0].find_element_by_xpath("a")
+                        href = point_url.get_attribute("href")
+                        logger.debug(f'  --- click -> {href}')
+                        results.append(href)
+                        point_url.click()
+                        driver.switch_to.window(driver.window_handles[1])
+                        logger.debug(f'  --- switch to new page, and wait [EC.presence_of_all_elements_located]')
+                        wait.until(EC.presence_of_all_elements_located)
+                        wait.until(EC.visibility_of_element_located((By.TAG_NAME, r'body')))
+                        logger.debug(f'  --- Then, close new page, and back to previous page.')
+                        driver.close()
+                        driver.switch_to.window(driver.window_handles[0])
+                    else:
+                        logger.debug(f"  -- ポイント対象URLを発見できず。  Skip.")
+
+                    logger.debug(f"  -- 次のポイント対象メールを開く.")
+                    # ------------------------------
+                    pager_next = pager[0].find_elements_by_xpath(r'ul/li[2]/a')
+                    if len(pager_next) > 0:
+                        logger.debug(f"  --- 次ページボタン押下.")
+                        # ------------------------------
+                        pager_next[0].click()
+                        # wait.until...
+                    else:
+                        logger.debug(f"  -- 次ページボタン無効＝最終ページ処理完了.")
+                        # ------------------------------
+                        break
+            after_txt = driver.find_element_by_css_selector('#mailContents > div.leftCol > dl > dd.pointNotGetCount').text
+            after_txt += '/' + driver.find_element_by_css_selector('#mailContents > div.leftCol > dl > dd.preGrantPoint').text
+            logger.debug(f"  -- Grant staus after: {after_txt}.")
+
+        except Exception as e:
+            logger.error(f' -- Ex={type(e)}: {"No message." if e.args is None else e.args}')
+            # driver.back()
+            # 未獲得メールの処理が完了しなければ中断したい
+            raise(e)
+
+        wk = {}
+        wk['Before'] = before_txt
+        wk['After'] = after_txt
+        wk['Links'] = results
+        return wk
+
+    def pilot_unread1(self):
         """
         Pilot for parse mail list.
         メールボックス内の未読一覧から、未読メールの情報を収集する
@@ -81,7 +189,7 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
 
         return point_contents
     
-    def pilot_internal2(self,point_contents):
+    def pilot_unread2(self,point_contents):
         """
         pilot to collect urls form each mail body.
         """
@@ -141,7 +249,7 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
         logger.debug(pprint.pformat(point_urls))
         return point_urls
 
-    def pilot_internal3(self, point_urls):
+    def pilot_unread3(self, point_urls):
         """
         pilot to get point from collected urls.
         """
@@ -185,37 +293,65 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
         return unvisited_urls
 
     def pilot(self):
-        self.pilot_setup()
-
-        driver = self.driver
-        wait = self.wait
+        """
+        """
+        self.logger.debug(f"@Start pilot()")
+        # ==============================
+        driver, wait = self.pilot_setup()
         logger = self.logger
         appdict = self.appdict
+        result_msg = {}
 
         try:
-            rakuten_users = self.config.get(r'Rakuten', [])
-            target_users = self.config.get(appdict.name, [])
+            logger.info(f"Execute by user.")
+            # ==============================
+            rakuten_users = self.config.get('users',{}).get(r'Rakuten', [])
+            wk = [ u['name'] for u in rakuten_users ]
+            logger.debug(f"- users: {','.join(wk)}")
+            target_users = self.config.get('services',{}).get(appdict.name, [])
+            logger.debug(f"- targets: {','.join(target_users)}")
+
             for user in rakuten_users:
-                if user['id'] not in target_users:
+                if user['name'] not in target_users:
                     # 実行対象外ユーザはスキップ
                     continue
+
+                logger.info(f"Execute for user:{user['name']}.")
+                # ==============================
+                result_msg[user['name']]={}
                 # ユーザ情報のロギング
                 wk = user.copy()
                 wk.pop('pw')
-                logger.debug(f" Processing for user: {wk}")
+                wk.pop('pin')
+                logger.debug(f"- User informations: {wk}")
                 if self.pilot_login(user):
-                    # parse mail, and get points
-                    contents = self.pilot_internal1()
-                    urls = self.pilot_internal2(contents)
-                    results = self.pilot_internal3(urls)
-                    logger.info(f'There is/are {len(self.pilot_result)} url(s) which was successfully visited.')
-                    logger.info(f'And, there is/are {len(results)} url(s) which must be visited later.')
+                    logger.info(f"- Treat unacquired mails for user:{user['name']}.")
+                    # ==============================
+                    wk = self.pilot_unacquired1()
+                    result_msg[user['name']]['1_unacquired'] = wk
+
+                    logger.info(f"- Treat (other) unread mails for user:{user['name']}.")
+                    # ==============================
+                    contents = self.pilot_unread1()
+                    urls = self.pilot_unread2(contents)
+                    results = self.pilot_unread3(urls)
+                    logger.info(f'- There is/are {len(self.pilot_result)} url(s) which was successfully visited.')
+                    logger.info(f'- And, there is/are {len(results)} url(s) which must be visited later.')
+                    result_msg[user['name']]['2_unread'] = self.pilot_result
+
+                    logger.info(f"Execution: done.")
+                    # ==============================
                     self.pilot_logout()
                 else:
                     logger.error(f'Login failed for user(SKIP): <{user["id"]}>')
         except Exception as e:
             logger.error(f"Caught exception: {type(e)} {e.args}")
+        finally:
+            pass #driver.quit()
 
+        self.reporter.critical(pprint.pformat(result_msg))
+
+        logger.debug(f"@End pilot()")
 
 if __name__ == "__main__":
     App = MailDePoint()
