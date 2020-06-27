@@ -52,6 +52,10 @@ class Rkeiba():
         driver.get("https://keiba.rakuten.co.jp/")
         logger.debug('  wait for (By.LINK_TEXT, u"トップ")')
         wait.until(EC.visibility_of_element_located((By.LINK_TEXT, u"トップ")))
+        if self.is_element_present(By.ID, 'PRmodal'):
+            logger.warn('  PRmodal 発見。閉じます。')
+            # driver.find_element_by_css_selector('#PRmodal > div:nth-child(4)').click()
+            driver.find_element_by_xpath('/html/body/section/div[2]/div').click()
         result = self.is_element_present(By.LINK_TEXT, u"マイページログイン")
         if result is False:
             logger.info(f"  -- ログイン中のようなので 一旦 ログアウトします")
@@ -125,6 +129,10 @@ class Rkeiba():
 
         driver.get("https://keiba.rakuten.co.jp/")
         wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '.glonavmain')))
+        if self.is_element_present(By.ID, 'PRmodal'):
+            logger.warn('  PRmodal 発見。閉じます。')
+            # driver.find_element_by_css_selector('#PRmodal > div:nth-child(4)').click()
+            driver.find_element_by_xpath('/html/body/section/div[2]/div').click()
         result = self.is_element_present(By.LINK_TEXT, u"ログアウト")
         logger.debug(f"  -- LINK_TEXT[ログアウト] exists? {result}")
         if result is True:
