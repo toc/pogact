@@ -15,7 +15,6 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import NoAlertPresentException
 from webdrivermanager import ChromeDriverManager
 import yaml
-import pandas as pd
 from logutils.logger import Logger
 
 
@@ -47,7 +46,7 @@ class RPAbase():
         1. Prepare logger, work file/folder, and so on.
         """
         # logger
-        self.logger = Logger(name, clevel=INFO, flevel=DEBUG)
+        self.logger = Logger(name, clevel=DEBUG if __debug__ else INFO, flevel=DEBUG)
         logger = self.logger
         # Setting file
         try:
@@ -81,7 +80,7 @@ class RPAbase():
             self.driverinfo = []
             raise(e)
 
-
+    # @return: driver, wait
     def pilot_setup(self, options=None):
         """
         Called from pilot().
@@ -95,6 +94,8 @@ class RPAbase():
         # self.driver = webdriver.Firefox()
         self.driver.implicitly_wait(10)
         self.wait = WebDriverWait(self.driver,10)
+
+        return (self.driver, self.wait)
    
     def pilot_login(self, account):
         """
@@ -125,64 +126,8 @@ class RPAbase():
         """
         Pilot automatically, to get your informations.
         """
-        param = self.pilot_param
-        driver = self.driver
+        raise(NotImplementedError)
 
-        driver.find_element_by_link_text(u"取引内容の確認").click()
-        driver.find_element_by_id("TransactionBody1_Ddl_Year").click()
-        Select(driver.find_element_by_id("TransactionBody1_Ddl_Year")).select_by_visible_text(str(param['year']))
-        driver.find_element_by_id("TransactionBody1_Ddl_Month").click()
-        Select(driver.find_element_by_id("TransactionBody1_Ddl_Month")).select_by_visible_text(str(param['month']))
-        driver.find_element_by_id("TransactionBody1_Ddl_Month").click()
-        driver.find_element_by_id("TransactionBody1_Btn_Search").click()
-
-        driver.save_screenshot(f"FNJPhone-{param['year']}{param['month']}.png")
-        #table = driver.find_element_by_xpath(r'//*[@id="TransactionBody1_PanelList"]/table[2]/tbody/tr/td/table')
-        # with open(f"FNJPhone-{param['year']}{param['month']}.html", "w") as f:
-        #     f.write(table.page_source)
-        # //*[@id="TransactionBody1_PanelList"]/table[2]/tbody/tr/td/table/tbody/tr[1]
-        # contents = []
-        # for tr in table.find_elements_by_xpath(r'tbody/tr'):
-        #     row = []
-        #     tds = tr.find_elements_by_xpath(r'td')
-        #     # print(tds)
-        #     if tds == []:
-        #         tds = tr.find_elements_by_xpath(r'th')
-        #     for td in tds:
-        #         row.append(td.text)
-        #     contents.append(row)
-
-        # print(contents)
-        # obj = pd.Series(contents)
-        ps = driver.page_source
-        print(type(ps))
-        print(ps[0:30])
-        obj = pd.read_html(ps, match='サービス名')
-        # obj = pd.read_html(unicode(ps, 'cp932').encode('utf-8') , match='サービス名')
-        # obj = pd.read_html(ps.encode('cp932').decode('utf-8'), match='サービス名')
-        with open(f"FNJPhone-tmp.html", 'w', encoding='utf-8') as fp:
-            fp.write(ps)
-        with open(f"FNJPhone-tmp.html", 'r', encoding='utf-8') as f:
-            ps = f.read()
-        obj = pd.read_html(ps, match='サービス名')
-        print(len(obj))
-        print(obj[4])
-        self.pilot_result.append([f"{param['year']}{param['month']}", obj[4].to_csv()])
-        with open(f"FNJPhone-{param['year']}{param['month']}.html", 'w', encoding='utf-8') as f:
-            # idx = 0
-            # for tab in obj:
-            #     f.write(f"=={idx}==\n")
-            #     f.write(f"{obj[idx]}\n\n")
-            #     idx += 1
-            f.write(
-                self.config['html_string'].format(
-                    css_string=self.config['css_string'],
-                    table=obj[4].to_html(classes='mystyle'),
-                )
-            )
-        # print(contents)
-
-        # driver.close()
 
     def tearDown(self):
         # Save last_done

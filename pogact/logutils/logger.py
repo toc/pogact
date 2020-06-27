@@ -26,7 +26,7 @@ def frameinfo(stackIndex=3):
 
 
 class Logger:
-    def __init__(self, name=__name__, clevel=None, flevel=None, annotate=True,path=None):
+    def __init__(self, name=__name__, clevel=None, flevel=None, annotate=True, path=None):
         self.logger = getLogger(name)
         self.logger.setLevel(DEBUG)
         self.annotate = annotate
@@ -40,8 +40,9 @@ class Logger:
         self.logger.addHandler(handler)
 
         # file
-        if path != None:
-            path = Path(path) if type(path) is str else path
+        if path is None:
+            path = 'logs'
+        path = Path(path) if type(path) is str else path
         path.mkdir(parents=True,exist_ok=True)
         logfile = path / f"{name}.log"
         level = DEBUG if flevel is None else flevel
