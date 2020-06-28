@@ -1,21 +1,17 @@
 # -*- coding: utf-8 -*-
-# from selenium import webdriver
+import time
+import datetime
+import yaml
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-# from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import NoAlertPresentException
 from logging import DEBUG, INFO    # , WARNING, ERROR, CRITICAL
-import yaml
-import datetime
-import time
-# from logutils import logger
 import logutils.AppDict
-from logutils import mailreporter
+import logutils.mailreporter
 import RPAbase.RakutenBase
-# from RPAbase.RakutenBase import RakutenBase
 
 
 class Rkeiba(RPAbase.RakutenBase.RakutenBase):
@@ -28,7 +24,7 @@ class Rkeiba(RPAbase.RakutenBase.RakutenBase):
             r'Rkeiba', __file__,
             r'0.1', r'$Rev$', r'Alpha'
         )
-        self.reporter = mailreporter.MailReporter(r'smtpconf.yaml', self.appdict.name)
+        self.reporter = logutils.mailreporter.MailReporter(r'smtpconf.yaml', self.appdict.name)
 
     def prepare(self):
         super().prepare(self.appdict.name)
