@@ -42,8 +42,13 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         1. Prepare work file/folder, and so on.
         """
         super().prepare(self.appdict.name)
-        with open('test_ch.yaml', 'r', encoding='utf-8') as f:
-            self.appdict.data['ptlinks'] = yaml.safe_load(f)
+        try:
+            fname = str(self.appdict.name).lower()
+            with open(f'{fname}_remain.yaml', 'r', encoding='utf-8') as f:
+                self.appdict.data['ptlinks'] = yaml.safe_load(f)
+        except Exception as e:
+            self.logger.error(f' Caught Ex(Ignore): Reviving previous remain list: {type(e)} {e.args}')
+            self.appdict.data['ptlinks'] = []
 
     def pilot_setup(self):
         """
@@ -228,14 +233,15 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
             self.pilot_internal3(user['name'])
         else:
             logger.debug('- 処理対象URLなし:　SKIP')
-        self.pilot_result.append(f'抽出したポイント付きURLを訪問: try={len(found_link)} / result={len(self.appdict.data["ptlinks"])}')
+        self.pilot_result.append(f'抽出したポイント付きURLを訪問: try={len(found_link)} / NG={len(self.appdict.data["ptlinks"])}')
 
         logger.info(f'アクセスできなかったURLを一時保存(次回処理)')
         # ==============================
         logger.debug(f'- 一時保留URL={len(self.appdict.data["ptlinks"])}')
-        with open('test_ch.yaml', 'w', encoding='utf-8') as f:
+        fname = str(self.appdict.name).lower()
+        with open(f'{fname}_remain.yaml', 'w', encoding='utf-8') as f:
             yaml.dump(self.appdict.data['ptlinks'],f)
-        self.pilot_result.append(f'アクセスできなかったURLを一時保存(次回処理).')
+        self.pilot_result.append(f'Save not-visited URLs. {len(self.appdict.data["ptlinks"])} link(s).')
 
         logger.info(f"全処理を完了")
         # ==============================
