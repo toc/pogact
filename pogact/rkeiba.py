@@ -1,97 +1,48 @@
 # -*- coding: utf-8 -*-
-from selenium import webdriver
+import time
+import datetime
+import yaml
 from selenium.webdriver.common.by import By
-# from selenium.webdriver.common.keys import Keys
-# from selenium.webdriver.support.ui import Select
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import NoAlertPresentException
 from logging import DEBUG, INFO    # , WARNING, ERROR, CRITICAL
-import codecs
-# from yaml import safe_load, repr
-import yaml
-import datetime
-import time
-# import sys
-# import re
-# from .logger import Logger
-import logger
-import mailreporter
+import logutils.AppDict
+import logutils.mailreporter
+import RPAbase.RakutenBase
 
-class Rkeiba():
-    def setup(self):
-        options = Options()
-        options.add_argument('-headless')
-        self.driver = webdriver.Firefox(options=options)
-        # self.driver = webdriver.Ie('IEDriverServer.exe')
-        self.driver.implicitly_wait(20)
-        self.wait = WebDriverWait(self.driver, 20)
-        self.pilot_record = []
-        self.accept_next_alert = True
-        self.logger = logger.Logger('Rkeiba', clevel=INFO, flevel=DEBUG)
-        self.reporter = mailreporter.MailReporter()
 
-        # self.today = datetime.datetime.today()
+class Rkeiba(RPAbase.RakutenBase.RakutenBase):
+    """
+    """
+    def __init__(self):
+        super().__init__()
+        self.appdict = logutils.AppDict.AppDict
+        self.appdict.setup(
+            r'Rkeiba', __file__,
+            r'0.1', r'$Rev$', r'Alpha'
+        )
+        self.reporter = logutils.mailreporter.MailReporter(r'smtpconf.yaml', self.appdict.name)
+
+    def prepare(self):
+        super().prepare(self.appdict.name)
         self.today = datetime.datetime.strptime(
             datetime.datetime.now().strftime("%Y-%m-%d 00:00:00"),
             "%Y-%m-%d 00:00:00",
         )
         self.logger.debug(f"{self.today.strftime('%c')}")
-        try:
-            with open('last_done.yaml', 'r', encoding='utf-8') as f:
-                self.last_done = yaml.safe_load(f)
-        except:
-            self.last_done = {}
-        try:
-            with open('settings.yaml', 'r', encoding='utf-8') as f:
-                self.config = yaml.safe_load(f)
-        except:
-            self.config = {}
-        num_users = len(self.config.get('users',[]))
-        self.logger.info(f"ユーザ数（設定ファイル内）: {num_users}")
-        return num_users
+        self.logger.info(f"@@@Start {self.appdict.name}({self.appdict.version_string()})")
 
-    def pilot_login(self, user):
-        driver = self.driver
-        wait = self.wait
-        logger = self.logger
+    def pilot_setup(self):
+        options = Options()
+        options.add_argument(r'--headless')
+        options.add_argument(r'--blink-settings=imagesEnabled=false')
+        options.add_experimental_option('useAutomationExtension', False)
+        options.add_experimental_option('excludeSwitches', ['enable-automation'])
 
-        driver.get("https://keiba.rakuten.co.jp/")
-        logger.debug('  wait for (By.LINK_TEXT, u"トップ")')
-        wait.until(EC.visibility_of_element_located((By.LINK_TEXT, u"トップ")))
-        result = self.is_element_present(By.LINK_TEXT, u"マイページログイン")
-        if result is False:
-            logger.info(f"  -- ログイン中のようなので 一旦 ログアウトします")
-            self.pilot_logout()
-        logger.debug('  wait for (By.LINK_TEXT,u"マイページログイン")')
-        wait.until(EC.element_to_be_clickable((By.LINK_TEXT, u"マイページログイン")))
-        driver.find_element_by_link_text(u"マイページログイン").click()
-        # with codecs.open("temp.html", "w", "cp932", 'ignore') as f:
-        #     f.write(driver.page_source)
-        logger.debug('  wait for (By.ID, "loginInner_u")')
-        wait.until(EC.element_to_be_clickable((By.ID, "loginInner_u")))
-        driver.find_element_by_id("loginInner_u").clear()
-        driver.find_element_by_id("loginInner_u").send_keys(user['id'])
-        driver.find_element_by_id("loginInner_p").clear()
-        driver.find_element_by_id("loginInner_p").send_keys(user['pw'])
-        driver.find_element_by_name("submit").click()
-        logger.debug('  SUBMIT login.')
-        logger.debug('  wait for 現在残高<XPATH>')
-        wait.until(
-            EC.visibility_of_element_located(
-                (By.XPATH, r'//*[@id="balanceStatus"]/ul/li[3]/span/span[2]')
-            )
-        )
-        # 現在残高を確認
-        wk = driver.find_element_by_xpath(
-            r'//*[@id="balanceStatus"]/ul/li[3]/span/span[2]'
-        ).text
-        balance_old = 0 if wk == '---' else int(wk.replace(',', ''))
-        logger.info(f'  -- 現在の残高: {balance_old} 円')
-        return balance_old
+        return super().pilot_setup(options)
 
     def pilot_depositing(self, user):
         driver = self.driver
@@ -100,6 +51,7 @@ class Rkeiba():
 
         logger.info('  入金処理開始')
         # ==============================
+        driver.get('https://keiba.rakuten.co.jp/')
         logger.debug('  wait for (By.LINK_TEXT, u"入金")')
         wait.until(EC.element_to_be_clickable((By.LINK_TEXT, u"入金")))
         driver.find_element_by_link_text(u"入金").click()
@@ -108,8 +60,6 @@ class Rkeiba():
         wait.until(lambda d: len(d.window_handles) > 1)
         logger.debug('  switch to NEW POPUP WINDOW.')
         driver.switch_to.window(driver.window_handles[1])
-        # with codecs.open("temp.html", "w", "cp932", 'ignore') as f:
-        #     f.write(driver.page_source)
         #
         logger.info('  入金額指定')
         # ==============================
@@ -129,88 +79,116 @@ class Rkeiba():
         driver.find_element_by_name("pin").clear()
         driver.find_element_by_name("pin").send_keys(user['pin'])
         driver.find_element_by_id("depositingOmitFlg").click()
-        driver.find_element_by_xpath(u"(.//*[normalize-space(text()) and normalize-space(.)='戻る'])[1]/following::span[1]").click()
         logger.debug('  SUBMIT depositing.')
+        driver.find_element_by_xpath(u"(.//*[normalize-space(text()) and normalize-space(.)='戻る'])[1]/following::span[1]").click()
+        logger.debug('  wait until: element_to_be_clickable((By.LINK_TEXT, u"投票画面へ"))')
+        wait.until(EC.element_to_be_clickable((By.LINK_TEXT, u"投票画面へ"))).click()
 
-    def pilot_logout(self):
+    def check_balance(self):
+        """
+        Check current balance and return it as integer.
+        This function assumes that top page of Rakuten keiba was already loaded.
+        """
         driver = self.driver
         wait = self.wait
         logger = self.logger
+        logger.debug(f'  @@START check balance')
+        
+        logger.debug(f'  - wait.until(EC.visibility_of_element_located((By.LINK_TEXT,"更新")))')
+        wait.until(EC.visibility_of_element_located((By.LINK_TEXT,'更新'))).click()
+        wk = driver.find_element_by_xpath('//*[@id="balanceStatus"]/ul/li[3]/span/span[2]').text
+        logger.debug(f'  - current balance: >{wk}<')
+        balance = 0 if wk == '---' else int(wk.replace(',', ''))
 
-        driver.get("https://keiba.rakuten.co.jp/")
-        wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '.glonavmain')))
-        result = self.is_element_present(By.LINK_TEXT, u"ログアウト")
-        logger.debug(f"  -- LINK_TEXT[ログアウト] exists? {result}")
-        if result is True:
-            logger.debug(f"  -- Try to click ログアウト link.")
-            driver.find_element_by_link_text(u"ログアウト").click()
-        else:
-            logger.debug(f"  -- Do nothing and exit.")
-        return result
+        logger.debug(f'  @@END check balance')
+        return balance
 
     def pilot(self):
-        driver = self.driver
-        wait = self.wait
+        driver, wait = self.pilot_setup()
         logger = self.logger
 
-        for user in self.config['users']:
+        need_report = 0
+
+        logger.debug(f"Read user & service information form yaml.")
+        # ==============================
+        # Get user information
+        users = self.config.get('users',{})
+        users_rakuten = users.get('Rakuten',[])
+        # Get service information
+        svcs = self.config.get('services',{})
+        svcs_rkeiba = svcs.get('Rkeiba',[])
+        if len(users_rakuten) * len(svcs_rkeiba) == 0:
+            self.logger.warn(f"No user({len(users_rakuten)}) or service({len(svcs_rkeiba)}) is found.  exit.")
+            return
+
+        # main loop
+        for user in users_rakuten:
             logger.info(f"処理開始: user={user['name']}")
             # ==============================
+            if user['name'] not in svcs_rkeiba:
+                logger.info(f"- User {user['name']} does not use this service.  Skip.")
+                continue
 
             logger.debug(f" 設定内容確認開始")
             # ==============================
             # 金額未指定ならデフォルト値(100円)
             user['charge'] = user.get('charge', 100)
             # パスワード, pin 以外をデバッグログに出力
-            wk = user.copy()
-            wk.pop('pw')
-            wk.pop('pin')
+            wk = {k:v for (k,v) in user.items() if k in ('name','id')}
             logger.debug(f"  params: {wk}")
             # 実行記録を確認：当日中の実行は１回に限定したい
             who = user['id']
-            last_done = self.last_done.get(who, datetime.datetime.min)
+            last_dones = self.last_done.get('Rkeiba',{})
+            last_done = last_dones.get(who)
+            if type(last_done) is not datetime.datetime: last_done = datetime.datetime.min
             logger.debug(f" {who}: today={self.today} vs last={last_done}")
             if self.today < last_done:
                 logger.info(f" {who}: Already done today.  SKIP.")
-                self.pilot_record.append(
+                self.pilot_result.append(
                     f"{user['name']}: Already done today.  SKIP."
                 )
                 continue
 
+            need_report += 1
             try:
                 logger.info(' 楽天競馬にログイン')
                 # ==============================
-                balance_old = self.pilot_login(user)
+                if self.pilot_login(user):
+                    # login succeed.
+                    driver.get('https://keiba.rakuten.co.jp/')
+                    balance_old = self.check_balance()
 
-                logger.info(' 入金処理')
-                # ==============================
-                self.pilot_depositing(user)
+                    logger.info(' 入金処理')
+                    # ==============================
+                    self.pilot_depositing(user)
 
-                logger.info(' 入金完了確認')
-                # ==============================
-                driver.find_element_by_link_text(u"投票画面へ").click()
-                with codecs.open("temp2.html", "w", "cp932", 'ignore') as f:
-                    f.write(driver.page_source)
-                for i in range(5):
-                    time.sleep(5)
-                    driver.find_element_by_link_text(u"更新").click()
-                    # driver.find_element_by_link_text(u"更新").click()
-                    wk = driver.find_element_by_xpath(r'//*[@id="menuBar"]/div/div[2]/div/ul/li[2]/span[2]').text
-                    logger.debug(f" -- 最新残高: RawValue=<{wk}> / RemoveComma=<{wk.replace(',','')}>")
-                    balance_new = 0 if wk == '---' else int(wk.replace(',', ''))
-                    logger.info(f"  {i}: {balance_old}->{balance_new}")
-                    if balance_new > balance_old:
-                        self.last_done[user['id']] = datetime.datetime.now()
-                        logger.info(f" {user['id']}: Complete at {self.last_done[user['id']].strftime('%c')}.")
-                        self.pilot_record.append(f"{user['name']}: {balance_old}->{balance_new}")
-                        break
+                    logger.info(' 入金完了確認')
+                    # ==============================
+                    result_msg = f"{user['name']}: {balance_old} is not changed."
+                    driver.get('https://keiba.rakuten.co.jp/')      # for self.check_balance()
+                    for i in range(8):
+                        time.sleep(5)
+                        balance_new = self.check_balance()
+                        logger.info(f"  {i}: {balance_old}->{balance_new}")
+
+                        if balance_new > balance_old:
+                            last_dones[who] = datetime.datetime.now()
+                            self.last_done['Rkeiba'] = last_dones
+                            logger.info(f" {who}: Complete at {last_dones[who].strftime('%c')}.")
+                            result_msg = f"{user['name']}: {balance_old}->{balance_new}"
+                            break
+                    self.pilot_result.append(result_msg)
+                else:
+                    # login failed
+                    pass
+
             except (TimeoutException, NoSuchElementException) as e:
-                self.pilot_record.append(f"{user['name']}: Ex={type(e)}")
+                self.pilot_result.append(f"{user['name']}: Ex={type(e)}")
                 logger.error(e.args)
             except Exception as e:
-                self.pilot_record.append(f"{user['name']}: Ex={type(e)} {e.message}")
-                # self.pilot_record.append(f"{user['name']}: Unexpected error: {sys.exc_info()[0]}")
-                logger.critical(f"Exception: {type(e)} {e.message}")
+                self.pilot_result.append(f"{user['name']}: Ex={type(e)} {e.args}")
+                # self.pilot_result.append(f"{user['name']}: Unexpected error: {sys.exc_info()[0]}")
+                logger.critical(f"Exception: {type(e)} {e.args}")
             finally:
                 logger.info(' ポップアップ終了～ログアウト')
                 # ==============================
@@ -223,31 +201,20 @@ class Rkeiba():
                 logger.debug(f"  片づけ完了: {driver.window_handles}")
                 driver.switch_to.window(driver.window_handles[0])
                 self.pilot_logout()
-            logger.info(f"処理完了: user={user['name']}")
-            # ==============================
 
-        logger.info(f"実行記録を保存")
-        # ==============================
-        try:
-            with open('last_done.yaml', 'w', encoding='utf-8') as f:
-                logger.debug(f" -- {self.last_done}")
-                f.write(yaml.dump(self.last_done))
-                logger.info(f" 実施記録を保存しました")
-        except:
-            logger.info(f" 実施記録を保存できませんでした(ignore)")
+            logger.info(f"処理完了: user={user['name']}")
+
         logger.info(f"全処理を完了")
         # ==============================
-        driver.quit()
-        logger.info(f" 処理結果: {self.pilot_record}")
-        if self.pilot_record != []:
-            self.reporter.report(f" 処理結果: {self.pilot_record}")
+        self.tearDown()
+        
+        logger.info(f" 処理結果: {self.pilot_result}, need_report: {need_report}")
+        if need_report > 0 and self.pilot_result != []:
+            self.reporter.report(f" 処理結果: {self.pilot_result}")
+            logger.debug(f" 処理結果を　Mailreporter　経由で送信しました")
 
-    def is_element_present(self, how, what):
-        try: self.driver.find_element(by=how, value=what)
-        except NoSuchElementException as e: return False
-        return True
 
 if __name__ == "__main__":
     App = Rkeiba()
-    if App.setup() > 0:
-        App.pilot()
+    App.prepare()
+    App.pilot()

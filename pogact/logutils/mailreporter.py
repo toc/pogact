@@ -7,12 +7,10 @@ import yaml
 
 class MailReporter():
     """ Send report via Yahoo mail. """
-    def __init__(self):
+    def __init__(self, config_file=None, mail_subject=None):
         self.logger = logging.getLogger('MailReporter')
         self.logger.setLevel(logging.INFO)
 
-    def setup(self, config_file, mail_subject=None):
-        result = r''
         try:
             with open(config_file, 'r', encoding='utf-8') as f:
                 conf = yaml.safe_load(f)
@@ -26,17 +24,22 @@ class MailReporter():
                     else conf.get(r'subject', r'RWebSearch auto')
                 credentials = (
                     conf.get(r'smtpacct', r'No_one'),
-                    conf.get(r'amtppass', r'NoPassword')
+                    conf.get(r'smtppass', r'NoPassword')
                 )
                 secure = None
             handler = SMTPHandler(mailhost, fromaddr, toaddrs, subject, credentials, secure)
             handler.setLevel(logging.INFO)
             self.logger.addHandler(handler)
+        except (TypeError, FileNotFoundError) as e:
+            # Guess config_file is not correctly configured.
+            print(f'{type(e)} {e.args}')
+            raise FileNotFoundError(f'Does config_file exist? [{config_file}]')
         except Exception as e:
-            result = f'Caught Exception: {type(e)}.'
             #TODO: Destroy self.logger and set it to None.
+            result = f'Caught Exception: {type(e)} {e.args}.'
+            raise e
 
-        return result
+        return
 
     def report(self, msg):
         if self.logger:

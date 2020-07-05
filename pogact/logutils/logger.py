@@ -3,22 +3,30 @@
 import os
 import inspect
 from logging import Formatter, handlers, StreamHandler, getLogger, DEBUG
-
+from pathlib import Path
 
 # Reference: http://stackoverflow.com/questions/6810999/how-to-determine-file-function-and-line-number
 # @return frameInfo
 def frameinfo(stackIndex=3):
-    stack = inspect.stack()
-    if stackIndex >= len(stack):
-        return None
-    callerframerecord = stack[stackIndex]
+    stacks = inspect.stack()
+    stack_count = len(stacks)
+    if stackIndex > 0:
+        # Pick up stack from FIRST of array(=nearest call) if stackIndex > 0
+        if stackIndex >= stack_count:
+            return None
+    else:
+        # Pick up stack from LAST of array(=farest call) or 0 if stackIndex <= 0
+        stackIndex = stack_count + stackIndex
+        if stackIndex < 0:
+            return None
+    callerframerecord = stacks[stackIndex]
     frame = callerframerecord[0]
     info = inspect.getframeinfo(frame)
     return info
 
 
 class Logger:
-    def __init__(self, name=__name__, clevel=None, flevel=None, annotate=True):
+    def __init__(self, name=__name__, clevel=None, flevel=None, annotate=True, path=None):
         self.logger = getLogger(name)
         self.logger.setLevel(DEBUG)
         self.annotate = annotate
@@ -32,10 +40,16 @@ class Logger:
         self.logger.addHandler(handler)
 
         # file
+        if path is None:
+            path = 'logs'
+        path = Path(path) if type(path) is str else path
+        path.mkdir(parents=True,exist_ok=True)
+        logfile = path / f"{name}.log"
         level = DEBUG if flevel is None else flevel
-        handler = handlers.RotatingFileHandler(filename = f"{name}.log",
-                                               maxBytes = 1048576,
-                                               backupCount = 3)
+        handler = handlers.RotatingFileHandler(
+            filename = str(logfile), encoding=r'utf-8',
+            maxBytes = 1048576, backupCount = 3
+        )
         handler.setLevel(level)
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)

@@ -1,10 +1,9 @@
 @echo off
 REM
-REM
+REM Kicker script for rwebsearch.py
 REM
 
-cd 'Path to script file'
-cd
+cd ..\pogact
 
 echo python rwebsearch.py
 python rwebsearch.py
