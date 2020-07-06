@@ -6,13 +6,13 @@ from pathlib import Path
 
 class AppDict():
     """ アプリケーション環境を保持するクラス """
-    name = r''
-    version = r''
-    revision = r''
-    status = r''
-    resource_path = r''
-    executed_file = r''
-    data = None
+    name = ''
+    version = ''
+    revision = ''
+    status = ''
+    resource_path = Path(__file__)
+    executed_file = Path(__file__)
+    data = {}
 
     def __init__(self):
         """ インスタンス化しての使用は想定しない """

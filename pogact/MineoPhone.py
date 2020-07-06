@@ -9,8 +9,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import NoAlertPresentException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException, NoAlertPresentException
 # from webdrivermanager import ChromeDriverManager
 import yaml
 import datetime
@@ -46,7 +45,8 @@ class MineoPhone(RPAbase.MineoBase.MineoBase):
         1. Update webdriver, if needed.
         1. Prepare work file/folder, and so on.
         """
-        super().prepare(self.appdict.name)
+        appdict = self.appdict
+        super().prepare(appdict.name)
         self.today = datetime.datetime.strptime(
             datetime.datetime.now().strftime("%Y-%m-%d 00:00:00"),
             "%Y-%m-%d 00:00:00",
@@ -55,9 +55,9 @@ class MineoPhone(RPAbase.MineoBase.MineoBase):
 
         dldir = Path(__file__).with_name('pdfdownload')
         dldir.mkdir(exist_ok=True)  # 存在していてもOKとする（エラーで止めない）
-        self.appdict.data['download_dir'] = str(dldir.resolve())  # absolute path.
+        appdict.data['download_dir'] = str(dldir.resolve())  # absolute path.
 
-        self.logger.info(f"@@@Start {self.appdict.name}({self.appdict.version_string()})")
+        self.logger.info(f"@@@Start {appdict.name}({appdict.version_string()})")
 
     def pilot_setup(self):
         """
@@ -66,6 +66,7 @@ class MineoPhone(RPAbase.MineoBase.MineoBase):
         1. Execute web browser.
         1. Fetch some information(s) with web browser.
         """
+        appdict = self.appdict
         options = Options()
         # options.add_argument(r'--headless')
         # イメージボタンが多用されているため、img表示は必要
@@ -74,7 +75,7 @@ class MineoPhone(RPAbase.MineoBase.MineoBase):
         options.add_experimental_option('excludeSwitches', ['enable-automation'])
         # PDF保存準備
         options.add_experimental_option("prefs", {
-            "download.default_directory": self.appdict.data['download_dir'],
+            "download.default_directory": appdict.data['download_dir'],
             "plugins.always_open_pdf_externally": True
         })
 
@@ -86,7 +87,6 @@ class MineoPhone(RPAbase.MineoBase.MineoBase):
         """
         driver, wait = self.pilot_setup()
         logger = self.logger
-        param = self.pilot_param
         appdict = self.appdict
 
         need_report = 0
