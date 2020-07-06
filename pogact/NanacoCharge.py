@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import Select
 # from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 # from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
 # from selenium.common.exceptions import NoAlertPresentException
 # from selenium.webdriver.chrome.options import Options
@@ -14,24 +15,24 @@ import sys
 import time
 import re
 import yaml
-from base.nanaco import Nanaco
-from utils.appdict import AppDict
+import RPAbase.nanaco
+from logutils.AppDict import AppDict
 
-class NanacoCharge(Nanaco):
+class NanacoCharge(RPAbase.nanaco.Nanaco):
 
     def __init__(self):
-        self.super = super(NanacoCharge, self)
-        self.super.__init__()
+        super().__init__()
+        self.appdict = AppDict
         self.appdict.setup(
-            r'NanacoCharge', r'Nanaco_user', 
+            r'NanacoCharge', # r'Nanaco_user', 
             __file__, r'0.1', r'$Rev$', r'Alpha'
         )
     
     def prepare(self, name=None, clevel=None, flevel=None):
         if name is None:
             name = self.appdict.name
-        self.super.prepare(name, clevel=None, flevel=flevel)
-        options = self.options
+        super().prepare(name)  #, clevel=None, flevel=flevel)
+        options = Options()
         # options.add_argument(r'--headless')
         # options.add_argument(r'--blink-settings=imagesEnabled=false')
         options.add_experimental_option(r'useAutomationExtension', False)
@@ -42,7 +43,7 @@ class NanacoCharge(Nanaco):
         wait = self.wait
         logger = self.logger
 
-        logger.fatal(f'Reach pilot_internal!!')
+        logger.critical(f'Reach pilot_internal!!')
 
         try:
             # 残高情報を確認
@@ -73,7 +74,7 @@ class NanacoCharge(Nanaco):
             logger.debug(f'  wait for visibility_of_element_located: (By.LINK_TEXT,"クレジットチャージ（入金）")')
             wait.until(EC.visibility_of_element_located((By.LINK_TEXT,"クレジットチャージ（入金）")))
             driver.find_element_by_link_text(u"クレジットチャージ（入金）").click()
-            self.save_current_html('after_entering_credit_charge.html')
+            # self.save_current_html('after_entering_credit_charge.html')
             # ----------------------
             # time.sleep(30)
             logger.info(f'  - 入金額選択(30000円)')
@@ -83,28 +84,28 @@ class NanacoCharge(Nanaco):
             driver.find_element_by_name("INPUT_AMT").send_keys("30")
             # Select(driver.find_element_by_name("AMT")).select_by_visible_text(u"30,000円")
             driver.find_element_by_name("ACT_ACBS_do_CRDT_CHRG_INPUT").click()
-            self.save_current_html('after_entering_charge_selection.html')
+            # self.save_current_html('after_entering_charge_selection.html')
             # ----------------------
             logger.info(f'  - 申込みボタン（最終確認）')
             logger.debug(f'  wait for visibility_of_element_located: (By.NAME,"ACT_ACBS_do_CRDT_CHRG_CONF")')
             wait.until(EC.visibility_of_element_located((By.NAME,"ACT_ACBS_do_CRDT_CHRG_CONF")))
             msg = driver.find_element_by_id(r"formTbl").text
             logger.info(f'  -- 入金予定: {msg}')
-            self.save_current_html('before_last_confirm.html')
+            # self.save_current_html('before_last_confirm.html')
             logger.debug(f'  -- 申込ボタン押下')
             driver.find_element_by_name("ACT_ACBS_do_CRDT_CHRG_CONF").click()
             # 結果確認
             ### TODO
             print(u"結果確認は未実装！")
             print(u"30秒スリープします")
-            self.save_current_html('after_last_confirm.html')
+            # self.save_current_html('after_last_confirm.html')
             time.sleep(30)
         # except TimeoutException as e:
         #     logger.error(f' Caught Ex(raise upstream): Catch TIMEOUT.  exit.: {type(e)} {e.args}')
         #     raise(e)
         except Exception as e:
             logger.error(f' Caught Ex(raise upstream): it happens something wrong.: {type(e)} {e.args}')
-            self.save_current_html('00caught_exception.html')
+            # self.save_current_html('00caught_exception.html')
             if self.is_element_present(By.ID, r'textSystem'):
                 wk = driver.find_element_by_id(r'textSystem').text
                 error_text = ','.join(wk.split('\n'))
