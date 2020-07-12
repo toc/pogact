@@ -134,7 +134,11 @@ class RWebSearch():
 
         ### 楽天競馬のオートパイロットからパクリ
         driver.get("https://keiba.rakuten.co.jp/")
-        wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '.glonavmain')))
+        if self.is_element_present(By.ID, 'PRmodal'):
+            logger.warn('  PRmodal 発見。閉じます。')
+            # driver.find_element_by_css_selector('#PRmodal > div:nth-child(4)').click()
+            driver.execute_script('closePR()')  # find_element_by_xpath('/html/body/section/div[2]/div').click()
+        # wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '.glonavmain')))
         result = self.is_element_present(By.LINK_TEXT, u"ログアウト")
         logger.debug(f"  -- LINK_TEXT[ログアウト] exists? {result}")
         if result is True:
@@ -154,6 +158,10 @@ class RWebSearch():
         driver.get("https://websearch.rakuten.co.jp/Web?qt=楽天")
         time.sleep(1)
         # wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "a.login-link"))).click()
+        if self.is_element_present(By.ID, 'PRmodal'):
+            logger.warn('  PRmodal 発見。閉じます。')
+            # driver.find_element_by_css_selector('#PRmodal > div:nth-child(4)').click()
+            driver.execute_script('closePR()')  # find_element_by_xpath('/html/body/section/div[2]/div').click()
         wait.until(EC.visibility_of_element_located((By.LINK_TEXT, "ログイン")))
         driver.find_element_by_link_text(r"ログイン").click()
         rakutenID = wait.until(EC.visibility_of_element_located((By.NAME, "u")))
