@@ -29,12 +29,12 @@ class RCardMonthly(RCardBase):
         )
 
     def prepare(self):
-        super().prepare(self.appdict.name)
+        super().prepare(self.appdict.name, '★楽天カード利用額')
         self.logger.info(f"@@@Start {self.appdict.name}({self.appdict.version_string()})")
 
     def pilot_setup(self):
         options = Options()
-        # options.add_argument(r'--headless')
+        options.add_argument(r'--headless')
         options.add_argument(r'--blink-settings=imagesEnabled=false')
         options.add_experimental_option('useAutomationExtension', False)
         options.add_experimental_option('excludeSwitches', ['enable-automation'])
@@ -47,7 +47,6 @@ class RCardMonthly(RCardBase):
         appdict = self.appdict
         logger.debug(f'  @@pilot_internal: START')
 
-        title, pay_by, status, bill = ('','','','')
         bills = []
         try:
             # Wait page top
@@ -71,14 +70,18 @@ class RCardMonthly(RCardBase):
 
 if __name__ == "__main__":
     try:
+        from operator import itemgetter
         App = RCardMonthly()
         App.prepare()
         App.pilot()
+        # pprint.pprint(App.pilot_result, width=40)
+        App.pilot_result.sort(key=itemgetter(0))
+        # print(App.pilot_result)
         App.report(
-            pprint.pformat(App.pilot_result, width=72)
+            pprint.pformat(App.pilot_result, width=40)
         )
         App.tearDown()
     except Exception as e:
-        print(f'Caught Exception: {type(e)} {e.args if hasattr(e,args) else str(e)}')
+        print(f'Caught Exception: {type(e)} {e.args if hasattr(e,"args") else str(e)}')
         if App.driver is not None:
             App.driver.quit()

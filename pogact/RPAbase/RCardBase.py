@@ -1,6 +1,7 @@
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+import random
 import RPAbase.RPAbase
 import logutils.mailreporter
 
@@ -8,14 +9,18 @@ import logutils.mailreporter
 class RCardBase(RPAbase.RPAbase.RPAbase):
     """
     """
-    def __init__(self):
-        super().__init__()
+    def prepare(self, name=__name__, reporter_subject=None):
+        super().prepare(name)
         try:
-            self.reporter = logutils.mailreporter.MailReporter(r'smtpconf.yaml', self.appdict.name)
+            subject = reporter_subject if reporter_subject else self.appdict.name
+            self.reporter = logutils.mailreporter.MailReporter(r'smtpconf.yaml', subject)
         except Exception as e:
+            self.logger.warn(f'Caught Exception: {type(e)} {e.args if hasattr(e,"args") else str(e)}')
             self.reporter = None
 
-    def report(self, msg):
+    def report(self, msg=None, subject=None):
+        if msg is None:
+            msg = self.pilot_result
         if self.reporter is not None:
             self.reporter.report(msg)
 
@@ -86,6 +91,7 @@ class RCardBase(RPAbase.RPAbase.RPAbase):
             return
 
         # main loop
+        random.shuffle(users)
         for user in users:
             wk = ( str(user.get("name","")), str(user.get("id","")) )
             logger.info(f'処理開始: user=[name=>{wk[0]}<, id=>{wk[1]}<]')
