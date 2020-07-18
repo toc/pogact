@@ -130,7 +130,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         logger.info('Cyberhomeメールにログイン')
         # ==============================
         user = self.config.get('users',{}).get('CyberhomeMail',{})
-        logger.debug(f' - user: >{user["id"]}< >{user["pw"]}<')
+        logger.debug(f' - user: >{user["id"]}<')
         self.pilot_login(user)
         logger.debug(f' --wait.until element_to_be_clickable((By.ID,r"menu_mail_inbox_unread"))')
         wait.until(EC.element_to_be_clickable((By.ID,r"menu_mail_inbox_unread")))
