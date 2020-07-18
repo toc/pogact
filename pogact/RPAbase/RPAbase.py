@@ -13,6 +13,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import NoAlertPresentException
+from selenium.common.exceptions import SessionNotCreatedException
+from selenium.common.exceptions import WebDriverException
 from webdrivermanager import ChromeDriverManager
 import yaml
 from logutils.logger import Logger
@@ -62,23 +64,6 @@ class RPAbase():
         except Exception as e:
             logger.error(f' Caught Ex(Ignore): Read last_done.yaml: {type(e)} {e.args}')
             self.last_done = {}
-        # WebDriver update - 1 time per hour (at most)
-        try:
-            wdinfo = self.last_done.get('WebDriver', {})
-            previous_update = wdinfo.get('last_update', datetime.datetime.min)
-            update_interval = wdinfo.get('update_interval_by_hour', 6)
-            now_minus_1h = datetime.datetime.now() - datetime.timedelta(hours=update_interval)
-            if previous_update < now_minus_1h:
-                dm = ChromeDriverManager()
-                self.driverinfo = dm.download_and_install()
-                wdinfo['last_update'] = datetime.datetime.now()
-                wdinfo['driver_info'] = list(self.driverinfo)
-            else:
-                self.driverinfo = wdinfo.get('driver_info', [])
-        except Exception as e:
-            logger.error(f' Caught Ex(Raise upstream): During manage webdriver: {type(e)} {e.args}')
-            self.driverinfo = []
-            raise(e)
 
     # @return: driver, wait
     def pilot_setup(self, options=None):
@@ -89,11 +74,55 @@ class RPAbase():
         1. Execute web browser.
         1. Fetch some information(s) with web browser.
         """
-        # ブラウザーを起動
-        self.driver = webdriver.Chrome(self.driverinfo[1], options=options)
-        # self.driver = webdriver.Firefox()
+        logger = self.logger
+        msg = ''
+
+        try:
+            ld_webdriver = self.last_done.get('WebDriver',{})
+            logger.debug(f"  -- last_done.webdriver: {ld_webdriver}")
+            previous = ld_webdriver.get('Chrome',['',datetime.datetime.min])
+            logger.debug(f"  -- get_download_path() == Re-use driver.")
+            driver_path = previous[0]
+
+            logger.debug(f"  driver_path: {driver_path}")
+            self.driver = webdriver.Chrome(driver_path, options=options)
+        except SessionNotCreatedException as e:
+            """
+            TODO:　Chromeのバージョンアップが考えられるのでWebDriverのバージョンアップを試みる。
+            """
+            logger.warn(f'  !! {type(e)}: {e.args if hasattr(e,"args") else e}')
+            msg += f"Maybe unmatch chromewebdriver, And try to update chrome driver... <{sys._getframe().f_lineno}@{__file__}>"
+            logger.warn(f'  !! {msg}')
+
+            try:
+                cdm = ChromeDriverManager()
+                logger.debug(f"  -- download_and_install() == Try to update driver")
+                driver_path = cdm.download_and_install()[0]
+                ld_webdriver['Chrome'] = [driver_path,datetime.datetime.now()]
+                self.last_done['WebDriver'] = ld_webdriver
+                logger.debug(f"  driver_path: {driver_path}")
+                self.driver = webdriver.Chrome(driver_path, options=options)
+            except Exception as e:
+                # msg += f" -- {type(e)}: {e.msg}\n"
+                logger.critical(f'  !! Cannot update ChromeDriver.  {type(e)}: {e.args if hasattr(e,"args") else e}')
+                msg += f"\n!! Cannot update ChromeDriver. <{sys._getframe().f_lineno}@{__file__}>.  Exit."
+                msg += "\n"
+                raise
+        except WebDriverException as e:
+            msg += f" -- {type(e)}: {e.msg}\n"
+            msg += f"!! Cannot instantiate WebDriver<{sys._getframe().f_lineno}@{__file__}>.  Exit.\n"
+            msg += "\n"
+        except Exception as e:
+            msg += f" -- Ex={type(e)}: {'No message.' if e.args is None else e.args}\n"
+            msg += "\n"
+        finally:
+            if self.driver is None:
+                logger.critical(msg)
+                raise SessionNotCreatedException('msg')
+
         self.driver.implicitly_wait(10)
-        self.wait = WebDriverWait(self.driver,10)
+        logger.debug(f'  -- {self.driver}')
+        self.wait = WebDriverWait(self.driver, 10)
 
         return (self.driver, self.wait)
    
