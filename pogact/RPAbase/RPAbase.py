@@ -151,7 +151,7 @@ class RPAbase():
         # Save last_done
         try:
             with open('last_done.yaml', 'w', encoding='utf-8') as f:
-                yaml.dump(self.last_done, f)
+                yaml.dump(self.last_done, f, default_flow_style=False, allow_unicode=True)
         except Exception as e:
             self.logger.error(f' Caught Ex(Ignore): Save last_done.yaml: {type(e)} {e.args}')
         # Clear webdriver
@@ -186,5 +186,5 @@ class RPAbase():
         else:
             raise AssertionError(f"Unexpected result: >{b}<")
 
-    def exceptionMessage(self, e):
+    def exception_message(self, e):
         return f'Caught Exception: {type(e)} {e.args if hasattr(e,"args") else str(e)}'

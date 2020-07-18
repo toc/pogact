@@ -1,10 +1,10 @@
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-import RPAbase.RPAbase
+import RPAbase.RPAUserService
 
 
-class RakutenBase(RPAbase.RPAbase.RPAbase):
+class RakutenBase(RPAbase.RPAUserService.RPAUserService):
     """
     """
     def pilot_login(self, account):
@@ -45,7 +45,7 @@ class RakutenBase(RPAbase.RPAbase.RPAbase):
         )
         return self.is_element_present(By.LINK_TEXT, u"ログアウト")
 
-    def pilot_logout(self):
+    def pilot_logout(self, account=None):
         driver = self.driver
         logger = self.logger
         wait = self.wait
