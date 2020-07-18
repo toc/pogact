@@ -102,32 +102,20 @@ class RPAbase():
         Called from pilot().
         Log-in target web site.
         """
-        driver = self.driver
-
-        driver.get("https://zeny.cyberhome.ne.jp/user/login.aspx")
-        driver.find_element_by_id("LoginBody1_Tb_Account").click()
-        driver.find_element_by_id("LoginBody1_Tb_Account").send_keys(account['id'])
-        driver.find_element_by_id("LoginBody1_Tb_Passsword").click()
-        driver.find_element_by_id("LoginBody1_Tb_Passsword").send_keys(account['pw'])
-        driver.find_element_by_id("LoginBody1_Btn_Login").click()
-        # pass
+        raise NotImplementedError('pilot_login()')
     
     def pilot_logout(self):
         """
         Called from pilot().
         Log-out from web site.
         """
-        # pass
-        driver = self.driver
-
-        driver.find_element_by_xpath(u"(.//*[normalize-space(text()) and normalize-space(.)='田中俊明'])[1]/following::img[1]").click()
+        raise NotImplementedError('pilot_logout()')
 
     def pilot(self):
         """
         Pilot automatically, to get your informations.
         """
-        raise(NotImplementedError)
-
+        raise NotImplementedError('pilot()')
 
     def tearDown(self):
         # Save last_done
@@ -167,3 +155,6 @@ class RPAbase():
             pass
         else:
             raise AssertionError(f"Unexpected result: >{b}<")
+
+    def exceptionMessage(self, e):
+        return f'Caught Exception: {type(e)} {e.args if hasattr(e,"args") else str(e)}'
