@@ -86,9 +86,10 @@ class RPAbase():
 
             logger.debug(f"  driver_path: {driver_path}")
             self.driver = webdriver.Chrome(driver_path, options=options)
-        except SessionNotCreatedException as e:
+        except (SessionNotCreatedException, OSError) as e:
             """
-            TODO:　Chromeのバージョンアップが考えられるのでWebDriverのバージョンアップを試みる。
+            SessionNotCreatedException:　Chromeのバージョンアップを想定しWebDriverのバージョンアップを試みる。
+            OSError: ChromeDriver 未取得の可能性あるため取得を試みる。
             """
             logger.warn(f'  !! {type(e)}: {e.args if hasattr(e,"args") else e}')
             msg += f"Maybe unmatch chromewebdriver, And try to update chrome driver... <{sys._getframe().f_lineno}@{__file__}>"
@@ -118,7 +119,7 @@ class RPAbase():
         finally:
             if self.driver is None:
                 logger.critical(msg)
-                raise SessionNotCreatedException('msg')
+                raise SessionNotCreatedException(msg)
 
         self.driver.implicitly_wait(10)
         logger.debug(f'  -- {self.driver}')
