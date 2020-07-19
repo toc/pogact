@@ -147,6 +147,12 @@ class RPAbase():
         """
         raise NotImplementedError('pilot()')
 
+    def report(self, msg=None, subject=None):
+        if msg is None:
+            msg = self.pilot_result
+        if self.reporter is not None:
+            self.reporter.report(msg)
+
     def tearDown(self):
         # Save last_done
         try:

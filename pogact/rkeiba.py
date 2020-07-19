@@ -11,10 +11,10 @@ from selenium.common.exceptions import NoAlertPresentException
 from logging import DEBUG, INFO    # , WARNING, ERROR, CRITICAL
 import logutils.AppDict
 import logutils.mailreporter
-import RPAbase.RakutenBase
+from RPAbase.RkeibaBase import RkeibaBase
 
 
-class Rkeiba(RPAbase.RakutenBase.RakutenBase):
+class Rkeiba(RkeibaBase):
     """
     """
     def __init__(self):
@@ -155,7 +155,7 @@ class Rkeiba(RPAbase.RakutenBase.RakutenBase):
                 # ==============================
                 if self.pilot_login(user):
                     # login succeed.
-                    driver.get('https://keiba.rakuten.co.jp/')
+                    driver.get('https://my.keiba.rakuten.co.jp/')
                     balance_old = self.check_balance()
 
                     logger.info(' 入金処理')

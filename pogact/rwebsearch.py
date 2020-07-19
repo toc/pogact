@@ -1,25 +1,20 @@
-from selenium import webdriver
+# -*- coding: utf-8 -*-
+import datetime
+import random
+from operator import itemgetter
+from logging import DEBUG, INFO, WARNING
+# with selenium related libraries
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, WebDriverException, SessionNotCreatedException
 from webdrivermanager import ChromeDriverManager
-from logging import DEBUG, INFO, WARNING
-import pprint
-from pathlib import Path
-import sys
-import random
-import time
-import datetime
-import random
-# from logutils import logger, AppDict
+# local classed, packages
 import logutils.AppDict
-import yaml
 from logutils import mailreporter
 from RPAbase.RakutenBase import RakutenBase
+
 
 class RWebSearch(RakutenBase):
     """
@@ -39,13 +34,21 @@ class RWebSearch(RakutenBase):
         self.reporter = logutils.mailreporter.MailReporter(r'smtpconf.yaml', self.appdict.name)
 
     def prepare(self):
+        # Excute supre() before you use self.logger
         super().prepare(self.appdict.name)
-        self.today = datetime.datetime.strptime(
-            datetime.datetime.now().strftime("%Y-%m-%d 00:00:00"),
-            "%Y-%m-%d 00:00:00",
-        )
-        self.logger.debug(f"{self.today.strftime('%c')}")
-        self.logger.info(f"@@@Start {self.appdict.name}({self.appdict.version_string()})")
+
+        logger = self.logger
+        appdict = self.appdict
+        #
+        # local settings
+        now = datetime.datetime.now()
+        appdict.data['today'] = now.replace(hour=0,minute=0,second=0,microsecond=0) 
+        appdict.data['need_report'] = 0
+        #
+        # Start !
+        logger.info(f"@@@Start {self.appdict.name}({self.appdict.version_string()})")
+        logger.debug(f"{appdict.data['today'].strftime('%c')}")
+
 
     def pilot_setup(self):
         options = Options()
@@ -99,7 +102,7 @@ class RWebSearch(RakutenBase):
         wait = self.wait
         logger = self.logger
         logger.debug(f' - @search_rws(): START')
-        cnd = "0"
+        cnt = "0"
 
         logger.debug(f'  - 楽天Web検索を実行.')
         # ==============================
@@ -158,8 +161,9 @@ class RWebSearch(RakutenBase):
         logger.debug(f' - 実行記録確認.')
         # ==============================
         last_done = last_dones.get(account['name'], datetime.datetime.min)
-        logger.debug(f"   {account['name']}: today={self.today} vs last={last_done}")
-        if self.today > last_done:
+        logger.debug(f"   {account['name']}: today={appdict.data['today']} vs last={last_done}")
+        if appdict.data['today'] > last_done:
+            appdict.data['need_report'] += 1
 
             logger.debug(f' - 急上昇ワードを取得.')
             # ==============================
@@ -195,6 +199,7 @@ class RWebSearch(RakutenBase):
 
     def pilot(self):
         logger = self.logger
+        appdict = self.appdict
         logger.debug(f'@pilot(): START')
 
         self.logger.info(f'- ユーザごとに処理を実行. >{self.USER_GROUP}< >{self.SERVICE_GROUP}<')
@@ -203,20 +208,30 @@ class RWebSearch(RakutenBase):
 
         self.logger.info(f"- 全処理を完了")
         # ==============================
-        logger.info(f'Result: {self.pilot_result}')
-        logger.debug(f'oo {self.last_done}')
-        if self.pilot_result != []:
-            report = sorted(self.pilot_result, key=lambda x: x[0])
-            self.reporter.critical(f" 処理結果: {pprint.pformat(report,width=64)}")
+        # Sort pilot_result[] by NAME of user, and output to logfile.
+        self.pilot_result.sort(key=itemgetter(0))
+        logger.info(f"Reuslt: {self.pilot_result}")
+        # Clear pilot_result[] if no report(mail) is needed.
+        logger.debug(f"(need_report = [{appdict.data['need_report']}])")
+        if appdict.data['need_report'] == 0:
+            self.pilot_result = []
 
         logger.debug(f'@pilot(): END')
 
 
 if __name__ == "__main__":
     try:
+        import pprint
         App = RWebSearch()
         App.prepare()
         App.pilot()
         App.tearDown()
     except Exception as e:
-        App.logger.critical(f'!!{App.exceptionMessage(e)}')
+        App.logger.critical(f'!!{App.exception_message(e)}')
+    finally:
+        # App.pilot_result.sort(key=itemgetter(0))
+        result = App.pilot_result
+        if result != []:
+            App.report(
+                pprint.pformat(result, width=40)
+            )
