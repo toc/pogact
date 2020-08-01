@@ -34,7 +34,7 @@ class RCardMonthly(RCardBase):
 
     def pilot_setup(self):
         options = Options()
-        options.add_argument(r'--headless')
+        # options.add_argument(r'--headless')
         options.add_argument(r'--blink-settings=imagesEnabled=false')
         options.add_experimental_option('useAutomationExtension', False)
         options.add_experimental_option('excludeSwitches', ['enable-automation'])
@@ -58,10 +58,12 @@ class RCardMonthly(RCardBase):
             summary = card_info.find_element_by_css_selector("div.rce-columns > div.rce-columns-cell.rce-billInfo-month")
             bills.append(summary.find_element_by_css_selector("h3.rf-title-collar.rce-title-belt-first").text)
             bills.append(summary.find_element_by_css_selector("table:nth-child(2) > tbody > tr:nth-child(1) > td").text)
-            bills.append(summary.find_element_by_css_selector("#parent-balance > div.rf-label.rce-annotation-pc-top.rce-annotation--blue").text)
-            bills.append(summary.find_element_by_css_selector("#js-bill-mask > em").text)
+            balance = summary.find_element_by_id("parent-balance")
+            divs = balance.find_elements_by_xpath("div")
+            for div in divs:
+                bills.append(div.text)
         except Exception as e:
-            bills.append(f'Caught Exception: {type(e)} {e.args if hasattr(e,args) else str(e)}')
+            bills.append(f'Caught Exception: {type(e)} {e.args if hasattr(e,"args") else str(e)}')
         finally:
             self.pilot_result.append( [account.get("name","Unknown"), bills] )
 

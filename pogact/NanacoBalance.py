@@ -62,16 +62,15 @@ class NanacoBalance(RPAbase.nanaco.Nanaco):
             detail_box = money_info.find_elements_by_class_name("detailBox")
             for detail in detail_box:
                 divs = detail.find_elements_by_xpath("div")
-                # titlek = f'{divs[0].text}'
-                wk = f'{divs[0].text}'
+                wk = f'{divs[0].text.splitlines()[0]}'
                 logger.debug(f'  □{wk}')
                 result.append(wk)
-                # electric money
+                # nanaco balance (e-money)
                 wk = f'- {"/".join(divs[1].text.splitlines())}'
                 logger.debug(f'  -{wk}')
                 result.append(wk)
-                # nanaco points
-                wk = f'- {"/".join(divs[2].text.splitlines())}'
+                # nanaco points (the points which will expire earlier)
+                wk = f'- {"/".join(divs[2].text.splitlines()[3:5])}'
                 logger.debug(f'  -{wk}')
                 result.append(wk)
         except Exception as e:
