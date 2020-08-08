@@ -342,9 +342,11 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
                     # ==============================
                     self.pilot_logout()
                 else:
-                    logger.error(f'Login failed for user(SKIP): <{user["id"]}>')
+                    result_msg[user['name']]['login'] = f'Login failed for user(SKIP): <{user["id"]}>'
+                    logger.error(result_msg[user['name']]['login'])
         except Exception as e:
-            logger.error(f"Caught exception: {type(e)} {e.args}")
+            result_msg[user['name']]['Except'] = self.exception_message(e)
+            logger.error(result_msg[user['name']]['Except'])
         finally:
             pass #driver.quit()
 
