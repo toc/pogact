@@ -14,8 +14,7 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
     # def pilot_setup(self):
     #     super.pilot_setup(name)
     def __init__(self):
-        self.super = super(MailDePoint, self)
-        self.super.__init__()
+        super().__init__()
         self.appdict = logutils.AppDict.AppDict
         self.appdict.setup(
             r'MailDePoint', __file__,
@@ -24,18 +23,16 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
         self.reporter = mailreporter.MailReporter(r'smtpconf.yaml', self.appdict.name)
 
     def prepare(self):
-        self.super.prepare(self.appdict.name)
+        super().prepare(self.appdict.name)
         self.logger.info(f"@@@Start {self.appdict.name}({self.appdict.version_string()})")
 
     def pilot_setup(self):
         options = Options()
         # options.add_argument(r'--headless')
-        ### Obsoleted
-        # options.add_argument(r'--disable-infobars')
         options.add_argument(r'--blink-settings=imagesEnabled=false')
         options.add_experimental_option('useAutomationExtension', False)
         options.add_experimental_option('excludeSwitches', ['enable-automation'])
-        return super(MailDePoint, self).pilot_setup(options)
+        return super().pilot_setup(options)
 
     def pilot_unacquired1(self):
         """
@@ -51,6 +48,8 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
             logger.debug(f"  - Move to top page of mail_de_point")
             # ------------------------------
             driver.get("https://member.pointmail.rakuten.co.jp/box")
+            logger.debug(f'  wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"#mailContents > div.leftCol > dl > dd.pointNotGetCount")))')
+            wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"#mailContents > div.leftCol > dl > dd.pointNotGetCount")))
             before_txt = driver.find_element_by_css_selector('#mailContents > div.leftCol > dl > dd.pointNotGetCount').text
             before_txt += '/' + driver.find_element_by_css_selector('#mailContents > div.leftCol > dl > dd.preGrantPoint').text
             logger.debug(f"  -- Grant staus before: {before_txt}.")

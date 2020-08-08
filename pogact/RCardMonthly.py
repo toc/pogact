@@ -34,7 +34,7 @@ class RCardMonthly(RCardBase):
 
     def pilot_setup(self):
         options = Options()
-        # options.add_argument(r'--headless')
+        options.add_argument(r'--headless')
         options.add_argument(r'--blink-settings=imagesEnabled=false')
         options.add_experimental_option('useAutomationExtension', False)
         options.add_experimental_option('excludeSwitches', ['enable-automation'])
@@ -63,7 +63,7 @@ class RCardMonthly(RCardBase):
             for div in divs:
                 bills.append(div.text)
         except Exception as e:
-            bills.append(f'Caught Exception: {type(e)} {e.args if hasattr(e,"args") else str(e)}')
+            bills.append(f'{App.exception_message(e)}')
         finally:
             self.pilot_result.append( [account.get("name","Unknown"), bills] )
 
@@ -84,6 +84,6 @@ if __name__ == "__main__":
         )
         App.tearDown()
     except Exception as e:
-        print(f'Caught Exception: {type(e)} {e.args if hasattr(e,"args") else str(e)}')
+        print(f'{App.exception_message(e)}')
         if App.driver is not None:
             App.driver.quit()

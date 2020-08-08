@@ -181,9 +181,9 @@ class MineoPhone(RPAbase.MineoBase.MineoBase):
 
             logger.info(f"処理完了: user={user['name']}")
 
-        logger.info(f"全処理を完了")
-        # ==============================
-        self.tearDown()
+        # logger.info(f"全処理を完了")
+        # # ==============================
+        # self.tearDown()
         
         logger.info(f" 処理結果: {self.pilot_result}, need_report: {need_report}")
         if need_report > 0 and self.pilot_result != []:
@@ -196,6 +196,7 @@ if __name__ == "__main__":
         App = MineoPhone()
         App.prepare()
         App.pilot()
+        App.tearDown()
     except Exception as e:
         print(e.args)
         if App:
