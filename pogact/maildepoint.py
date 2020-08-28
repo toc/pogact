@@ -51,6 +51,7 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
             logger.debug(f'  wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"#mailContents > div.leftCol > dl > dd.pointNotGetCount")))')
             wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"#mailContents > div.leftCol > dl > dd.pointNotGetCount")))
             before_txt = driver.find_element_by_css_selector('#mailContents > div.leftCol > dl > dd.pointNotGetCount').text
+            num_notget = int(before_txt)
             before_txt += '/' + driver.find_element_by_css_selector('#mailContents > div.leftCol > dl > dd.preGrantPoint').text
             logger.debug(f"  -- Grant staus before: {before_txt}.")
 
@@ -137,6 +138,7 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
             raise(e)
 
         wk = {}
+        wk['NotGet'] = num_notget
         wk['Before'] = before_txt
         wk['After'] = after_txt
         wk['Links'] = results
@@ -327,7 +329,8 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
                     logger.info(f"- Treat unacquired mails for user:{user['name']}.")
                     # ==============================
                     wk = self.pilot_unacquired1()
-                    result_msg[user['name']]['1_unacquired'] = wk
+                    if wk.get('NotGet',0) > 0:
+                        result_msg[user['name']]['1_unacquired'] = wk
 
                     logger.info(f"- Treat (other) unread mails for user:{user['name']}.")
                     # ==============================
@@ -336,7 +339,8 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
                     results = self.pilot_unread3(urls)
                     logger.info(f'- There is/are {len(self.pilot_result)} url(s) which was successfully visited.')
                     logger.info(f'- And, there is/are {len(results)} url(s) which must be visited later.')
-                    result_msg[user['name']]['2_unread'] = self.pilot_result
+                    if len(self.pilot_result) > 0:
+                        result_msg[user['name']]['2_unread'] = self.pilot_result
 
                     logger.info(f"Execution: done.")
                     # ==============================
@@ -350,7 +354,12 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
         finally:
             pass #driver.quit()
 
-        self.reporter.critical(pprint.pformat(result_msg))
+        num_keys = result_msg.keys()
+        if len(num_keys) > 0:
+            self.reporter.critical(pprint.pformat(result_msg))
+            logger.debug(f' Report mail was sent. [Target users = {num_keys}]')
+        else
+            logger.debug(f' No report mail was sent. [Target users = {num_keys}]')
 
         logger.debug(f"@End pilot()")
 
