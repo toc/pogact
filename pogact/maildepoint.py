@@ -153,6 +153,7 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
         wait = self.wait
         logger = self.logger
 
+        point_contents = []
         try:
             driver.get("https://member.pointmail.rakuten.co.jp/box")
             driver.find_element_by_link_text(u"メールボックス").click()
@@ -163,7 +164,6 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
             mailbox = driver.find_element_by_class_name("mailboxBox")
             mails = mailbox.find_elements_by_xpath("ul/li")
             logger.debug(f'  Found {len(mails)} mail(s) in mailbox.')
-            point_contents = []
             for mail in mails:
                 class_value = mail.get_attribute("class")
                 if class_value == "teamSiteSubject":
@@ -358,7 +358,7 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
         if len(num_keys) > 0:
             self.reporter.critical(pprint.pformat(result_msg))
             logger.debug(f' Report mail was sent. [Target users = {num_keys}]')
-        else
+        else:
             logger.debug(f' No report mail was sent. [Target users = {num_keys}]')
 
         logger.debug(f"@End pilot()")
