@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # import sys
 import time
+import os
 # import re
 # from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -81,6 +82,16 @@ class MineoPhone(RPAbase.MineoBase.MineoBase):
 
         return super().pilot_setup(options)
 
+    def getLatestDownloadedFileName(self):
+        downloadsFilePath = self.appdict.data['download_dir']
+        if len(os.listdir(downloadsFilePath)) == 0:
+            return None
+        # print(f'!! {[f for f in os.listdir(downloadsFilePath)]}')
+        return max (
+            [f'{downloadsFilePath}/'+ f for f in os.listdir(downloadsFilePath)], 
+            key=os.path.getctime
+        )
+
     def pilot(self):
         """
         Pilot automatically, to get your informations.
@@ -139,6 +150,13 @@ class MineoPhone(RPAbase.MineoBase.MineoBase):
                     # driver.find_element_by_link_text(u"ご利用料金").click()
                     driver.get("https://mypage.eonet.jp/Bill/details")
 
+                    # driver.execute_script("javascript:nextMyPageModal();")
+                    if self.is_element_present(By.ID,'modal_close'):
+                        logger.debug(' - モーダルダイアログ: あるっぽいので閉じる')
+                        driver.find_element((By.ID,'modal_close')).click()
+                    else:
+                        logger.debug(' - モーダルダイアログ: なさげ')
+
                     logger.debug(' 年月を指定')
                     # ------------------------------
                     logger.debug(f'  - wait for visibility_of_element_located((By.ID,"billingYm"))')
@@ -146,8 +164,10 @@ class MineoPhone(RPAbase.MineoBase.MineoBase):
 
                     now = datetime.datetime.now()
                     diff = relativedelta(months=2) if now.day <= 15 else relativedelta(months=1)
-                    target_day = now - diff 
-                    select_item = f'{format(target_day.year, "04d")}年{format(target_day.month, "02d")}月ご利用分'
+                    target_day = now - diff
+                    yyyy = format(target_day.year, "04d")
+                    mm = format(target_day.month, "02d")
+                    select_item = f'{yyyy}年{mm}月ご利用分'
                     logger.debug(f'  - taget: {select_item}')
                     driver.find_element_by_id("billingYm").click()
                     Select(driver.find_element_by_id("billingYm")).select_by_visible_text(select_item)
@@ -156,6 +176,17 @@ class MineoPhone(RPAbase.MineoBase.MineoBase):
                     wait.until(EC.element_to_be_clickable((By.ID,"pdfDownload")))
                     driver.find_element_by_id("pdfDownload").click()
                     time.sleep(8)           # ダウンロード完了待ち
+                    filepath = self.getLatestDownloadedFileName()
+                    if filepath is not None:
+                        fp_org = Path(filepath)
+                        fp_new = fp_org.with_name(f'Mineo_{user["name"]}_{yyyy}{mm}.pdf')
+                        fp_org.rename(fp_new)
+                        logger.debug(f'  - Downloaded: >{str(fp_org)}<')
+                        logger.debug(f'  - Renamed to: >{str(fp_new)}<')
+                    else:
+                        # download failed
+                        logger.critical(f'  !! No downloaded file is found.  Abort.')
+                        raise(FileNotFoundError('No downloaded file is found.'))
 
                     logger.debug(' 実行記録情報を更新')
                     # ------------------------------
