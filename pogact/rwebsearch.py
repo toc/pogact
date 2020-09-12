@@ -75,20 +75,17 @@ class RWebSearch(RakutenBase):
             logger.debug(f'   - サイトを移動.')
             # ------------------------------
             driver.get("http://search.yahoo.co.jp/realtime")
-            logger.debug(f'     wait.until: visibility (By.CSS_SELECTOR, "#body > div.Top > article > section")')
-            wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#body > div.Top > article > section")))
+            logger.debug(f'     wait.until: visibility (By.XPATH, "//*[@id="body"]/div[2]/article/header/h1")')
+            wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="body"]/div[2]/article/header/h1')))
+            wk = driver.find_element(By.XPATH, '//*[@id="body"]/div[2]/article/header/h1').text
+            logger.debug(f'     [{wk}] == トレンドランキング')
 
             logger.debug(f'   - ワードを抽出.')
             # ------------------------------
-            word_list = driver.find_elements_by_css_selector("#body > div.Top > article > section > ol > li > a")
+            word_list = driver.find_elements_by_xpath('//*[@id="body"]/div[2]/article/section/ol/li/a')
             words = [a.text for a in word_list]
             logger.debug(f'     =>{words}')
 
-            # logger.debug(f'   - 楽天Web検索のadd-onタブで作業していたのでタブを消去する.')
-            # # ------------------------------
-            # driver.switch_to.window(driver.window_handles[1])
-            # driver.close()
-            # driver.switch_to.window(driver.window_handles[0])
         except Exception as e:
             logger.warn(f'   !!<Ignore>:{self.exception_message(e)}')
             words = []
