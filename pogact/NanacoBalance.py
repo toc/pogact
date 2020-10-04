@@ -1,16 +1,10 @@
 # -*- coding: utf-8 -*-
-# from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
-# from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-# from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
-# from selenium.common.exceptions import NoAlertPresentException
-# from selenium.webdriver.chrome.options import Options
-# from webdrivermanager import ChromeDriverManager
 import sys
 import time
 import re
@@ -61,18 +55,27 @@ class NanacoBalance(RPAbase.nanaco.Nanaco):
             money_info = driver.find_element_by_id("memberInfoFull")
             detail_box = money_info.find_elements_by_class_name("detailBox")
             for detail in detail_box:
+                # Title
                 divs = detail.find_elements_by_xpath("div")
                 wk = f'{divs[0].text.splitlines()[0]}'
-                logger.debug(f'  □{wk}')
-                result.append(wk)
+                logger.debug(f'□{wk}')
+                result.append(f'□{wk}')
                 # nanaco balance (e-money)
-                wk = f'- {"/".join(divs[1].text.splitlines())}'
-                logger.debug(f'  -{wk}')
-                result.append(wk)
+                wk = f'{"/".join(divs[1].text.splitlines())}'
+                logger.debug(f' -{wk}')
+                result.append(f' -{wk}')
                 # nanaco points (the points which will expire earlier)
-                wk = f'- {"/".join(divs[2].text.splitlines()[3:5])}'
-                logger.debug(f'  -{wk}')
-                result.append(wk)
+                wk = divs[2].text.splitlines()
+                wk2 = f'{"/".join(wk[0:2])}'
+                logger.debug(f' -{wk2}')
+                result.append(f' -{wk2}')
+                wk2 = f'{"/".join(wk[3:5])}'
+                logger.debug(f' --{wk2}')
+                result.append(f' --{wk2}')
+                # nanaco points (the points which will expire later)
+                wk2 = f'{"/".join(wk[5:7])}'
+                logger.debug(f' --{wk2}')
+                result.append(f' --{wk2}')
         except Exception as e:
             wk = f' Caught Ex(raise upstream): it happens something wrong.: {type(e)} {e.args}'
             logger.error(wk)

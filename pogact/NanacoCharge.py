@@ -1,16 +1,10 @@
 # -*- coding: utf-8 -*-
-# from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
-# from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-# from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
-# from selenium.common.exceptions import NoAlertPresentException
-# from selenium.webdriver.chrome.options import Options
-# from webdrivermanager import ChromeDriverManager
 import sys
 import time
 import re
@@ -43,7 +37,14 @@ class NanacoCharge(RPAbase.nanaco.Nanaco):
         wait = self.wait
         logger = self.logger
 
-        logger.critical(f'Reach pilot_internal!!')
+        logger.debug(f'@@Reach pilot_internal!!')
+
+        wk = account.get('charge_with',"0")
+        adding = -99 if wk is None else int(wk)
+        if adding > 30 or adding <= 0:
+            # Illegal parameter.
+            logger.warn(f' - Illegal params.  SKIP!  : charge_with=>{str(adding)}<')
+            return
 
         try:
             # 残高情報を確認
@@ -81,8 +82,7 @@ class NanacoCharge(RPAbase.nanaco.Nanaco):
             logger.debug(f'  wait for visibility_of_element_located: (By.NAME,"INPUT_AMT")')
             wait.until(EC.visibility_of_element_located((By.NAME,"INPUT_AMT")))
             driver.find_element_by_name("INPUT_AMT").clear()
-            driver.find_element_by_name("INPUT_AMT").send_keys("30")
-            # Select(driver.find_element_by_name("AMT")).select_by_visible_text(u"30,000円")
+            driver.find_element_by_name("INPUT_AMT").send_keys(account['charge_with'])
             driver.find_element_by_name("ACT_ACBS_do_CRDT_CHRG_INPUT").click()
             # self.save_current_html('after_entering_charge_selection.html')
             # ----------------------
@@ -97,12 +97,7 @@ class NanacoCharge(RPAbase.nanaco.Nanaco):
             # 結果確認
             ### TODO
             print(u"結果確認は未実装！")
-            print(u"30秒スリープします")
             # self.save_current_html('after_last_confirm.html')
-            time.sleep(30)
-        # except TimeoutException as e:
-        #     logger.error(f' Caught Ex(raise upstream): Catch TIMEOUT.  exit.: {type(e)} {e.args}')
-        #     raise(e)
         except Exception as e:
             logger.error(f' Caught Ex(raise upstream): it happens something wrong.: {type(e)} {e.args}')
             # self.save_current_html('00caught_exception.html')
