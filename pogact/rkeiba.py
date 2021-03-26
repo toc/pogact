@@ -94,10 +94,13 @@ class Rkeiba(RkeibaBase):
         logger = self.logger
         logger.debug(f'  @@START check balance')
         
-        logger.debug(f'  - wait.until(EC.visibility_of_element_located((By.LINK_TEXT,"更新")))')
-        wait.until(EC.visibility_of_element_located((By.LINK_TEXT,'更新'))).click()
-        wk = driver.find_element_by_xpath('//*[@id="balanceStatus"]/ul/li[3]/span/span[2]').text
-        logger.debug(f'  - current balance: >{wk}<')
+        for i in range(8):
+            logger.debug(f'  - {i}: wait.until(EC.visibility_of_element_located((By.LINK_TEXT,"更新")))')
+            wait.until(EC.visibility_of_element_located((By.LINK_TEXT,'更新'))).click()
+            wk = driver.find_element_by_xpath('//*[@id="balanceStatus"]/ul/li[3]/span/span[2]').text
+            logger.debug(f'  - current balance: >{wk}<')
+            if wk != '':
+                break
         balance = 0 if wk == '---' else int(wk.replace(',', ''))
 
         logger.debug(f'  @@END check balance')

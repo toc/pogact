@@ -44,7 +44,7 @@ class TCSReceipt(RPAbase.TimesCarShare.TimesCarShare):
 
     def pilot_setup(self):
         options = Options()
-        options.add_argument(r'--headless')
+        # options.add_argument(r'--headless')
         options.add_argument(r'--blink-settings=imagesEnabled=false')
         options.add_experimental_option('useAutomationExtension', False)
         options.add_experimental_option('excludeSwitches', ['enable-automation'])
