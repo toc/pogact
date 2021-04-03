@@ -58,7 +58,13 @@ class RWebSearch(RakutenBase):
         options.add_experimental_option('useAutomationExtension', False)
         options.add_experimental_option("excludeSwitches" , ["enable-automation"])  # disable-infobars
 
-        return super().pilot_setup(options)
+        wk = super().pilot_setup(options)
+
+        if wk is not None:
+            self.driver.switch_to.window(self.driver.window_handles[0])
+
+        return wk
+
 
     def realtime_words(self):
         """ ヤフーリアルタイム検索よりワード生成 """
