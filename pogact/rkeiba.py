@@ -28,10 +28,7 @@ class Rkeiba(RkeibaBase):
 
     def prepare(self):
         super().prepare(self.appdict.name)
-        self.today = datetime.datetime.strptime(
-            datetime.datetime.now().strftime("%Y-%m-%d 00:00:00"),
-            "%Y-%m-%d 00:00:00",
-        )
+        self.today = datetime.datetime.now().replace(hour=0,minute=0,second=0,microsecond=0)
         self.logger.debug(f"{self.today.strftime('%c')}")
         self.logger.info(f"@@@Start {self.appdict.name}({self.appdict.version_string()})")
 
@@ -134,22 +131,38 @@ class Rkeiba(RkeibaBase):
 
             logger.debug(f" 設定内容確認開始")
             # ==============================
-            # 金額未指定ならデフォルト値(100円)
+            # 金額未指定ならデフォルト値(100円), 月あたりの最大実行回数(default:4)
             user['charge'] = user.get('charge', 100)
+            user['max_per_month'] = user.get('max_per_month', 4)
             # パスワード, pin 以外をデバッグログに出力
             wk = {k:v for (k,v) in user.items() if k in ('name','id')}
             logger.debug(f"  params: {wk}")
             # 実行記録を確認：当日中の実行は１回に限定したい
             who = user['id']
             last_dones = self.last_done.get('Rkeiba',{})
-            last_done = last_dones.get(who)
-            if type(last_done) is not datetime.datetime: last_done = datetime.datetime.min
+            whos_done = last_dones.get(who)
+            if type(whos_done) is not dict: whos_done = {}
+            last_done = whos_done.get('last_done', datetime.datetime.min)
             logger.debug(f" {who}: today={self.today} vs last={last_done}")
+            # 当日中の実行記録あり
             if self.today < last_done:
                 logger.info(f" {who}: Already done today.  SKIP.")
                 self.pilot_result.append(
                     f"{user['name']}: Already done today.  SKIP."
                 )
+                continue
+            # 当月中の実行回数が規定値未満か
+            this_month = self.today.replace(day=1)
+            exec_month = whos_done.get('exec_month', datetime.datetime.min)
+            exec_count = whos_done.get('exec_count', 0)
+            if this_month > exec_month:
+                # 月替わりを検出
+                logger.info(f" Exec_count[{exec_count}] is reset becuse new month arrived. new=>{exec_month}<, old=>{this_month}<")
+                exec_month = this_month
+                exec_count = 0
+            if exec_count >= user['max_per_month']:
+                # 月あたりの最大実行回数を超過
+                logger.debug(f" SKIP execution because exec_count[{exec_count}] exceeds limitation[{user['max_per_month']}].")
                 continue
 
             need_report += 1
@@ -175,10 +188,13 @@ class Rkeiba(RkeibaBase):
                         logger.info(f"  {i}: {balance_old}->{balance_new}")
 
                         if balance_new > balance_old:
-                            last_dones[who] = datetime.datetime.now()
+                            whos_done['exec_month'] = exec_month
+                            whos_done['exec_count'] = exec_count + 1
+                            whos_done['last_done'] = datetime.datetime.now()
+                            last_dones[who] = whos_done
                             self.last_done['Rkeiba'] = last_dones
-                            logger.info(f" {who}: Complete at {last_dones[who].strftime('%c')}.")
-                            result_msg = f"{user['name']}: {balance_old}->{balance_new}"
+                            logger.info(f" {who}: Complete at {whos_done['last_done'].strftime('%c')}.")
+                            result_msg = f"{user['name']}: {balance_old}->{balance_new}, {whos_done['exec_count']}@{whos_done['exec_month'].strftime('%Y-%m')}."
                             break
                     self.pilot_result.append(result_msg)
                 else:
