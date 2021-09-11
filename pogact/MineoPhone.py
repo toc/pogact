@@ -179,7 +179,7 @@ class MineoPhone(RPAbase.MineoBase.MineoBase):
                     filepath = self.getLatestDownloadedFileName()
                     if filepath is not None:
                         fp_org = Path(filepath)
-                        fp_new = fp_org.with_name(f'Mineo_{user["name"]}_{yyyy}{mm}.pdf')
+                        fp_new = fp_org.with_name(f'{yyyy}{mm}_Mineo_{user["name"]}.pdf')
                         fp_org.rename(fp_new)
                         logger.debug(f'  - Downloaded: >{str(fp_org)}<')
                         logger.debug(f'  - Renamed to: >{str(fp_new)}<')
