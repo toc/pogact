@@ -52,7 +52,7 @@ class RWebSearch(RakutenBase):
 
     def pilot_setup(self):
         options = Options()
-        options.add_extension("4.655_0.crx")                                # 楽天ウェブ検索をインポート
+        options.add_extension("4.663_0.crx")                                # 楽天ウェブ検索をインポート
         # options.add_argument("--headless")        # 楽天Web検索はheadlessモード不可
         options.add_argument("--blink-settings=imagesEnabled=false")        # 画像非表示
         options.add_experimental_option('useAutomationExtension', False)
