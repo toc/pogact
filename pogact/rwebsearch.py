@@ -52,13 +52,19 @@ class RWebSearch(RakutenBase):
 
     def pilot_setup(self):
         options = Options()
-        options.add_extension("4.648_0.crx")                                # 楽天ウェブ検索をインポート
+        options.add_extension("4.663_0.crx")                                # 楽天ウェブ検索をインポート
         # options.add_argument("--headless")        # 楽天Web検索はheadlessモード不可
         options.add_argument("--blink-settings=imagesEnabled=false")        # 画像非表示
         options.add_experimental_option('useAutomationExtension', False)
         options.add_experimental_option("excludeSwitches" , ["enable-automation"])  # disable-infobars
 
-        return super().pilot_setup(options)
+        wk = super().pilot_setup(options)
+
+        if wk is not None:
+            self.driver.switch_to.window(self.driver.window_handles[0])
+
+        return wk
+
 
     def realtime_words(self):
         """ ヤフーリアルタイム検索よりワード生成 """
@@ -75,14 +81,16 @@ class RWebSearch(RakutenBase):
             logger.debug(f'   - サイトを移動.')
             # ------------------------------
             driver.get("http://search.yahoo.co.jp/realtime")
-            logger.debug(f'     wait.until: visibility (By.XPATH, "//*[@id="body"]/div[2]/article/header/h1")')
-            wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="body"]/div[2]/article/header/h1')))
-            wk = driver.find_element(By.XPATH, '//*[@id="body"]/div[2]/article/header/h1').text
-            logger.debug(f'     [{wk}] == トレンドランキング')
+            what = '//*[@id="contentsBody"]/div[1]/article[2]/h1'
+            logger.debug(f'     wait.until: visibility (By.XPATH, "{what}")')
+            wait.until(EC.visibility_of_element_located((By.XPATH, what)))
+            wk = driver.find_element(By.XPATH, what).text
+            logger.debug(f'     [{wk}] == トレンド')
 
             logger.debug(f'   - ワードを抽出.')
             # ------------------------------
-            word_list = driver.find_elements_by_xpath('//*[@id="body"]/div[2]/article/section/ol/li/a')
+            what = '//*[@id="contentsBody"]/div[1]/article[2]/section/ol/li/a/article'
+            word_list = driver.find_elements_by_xpath(what)
             words = [a.text for a in word_list]
             logger.debug(f'     =>{words}')
 

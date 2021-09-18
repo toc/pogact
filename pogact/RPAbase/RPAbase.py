@@ -77,6 +77,10 @@ class RPAbase():
         logger = self.logger
         msg = ''
 
+        # Ad-hoc workaround for Google Chrome v.93 or later.
+        ### See: https://stackoverflow.com/questions/69034343/chromedriver-session-timeouts-in-version-93
+        options.add_argument("--disable-gpu")  
+
         try:
             ld_webdriver = self.last_done.get('WebDriver',{})
             logger.debug(f"  -- last_done.webdriver: {ld_webdriver}")
@@ -108,7 +112,6 @@ class RPAbase():
                 logger.critical(f'  !! Cannot update ChromeDriver.  {type(e)}: {e.args if hasattr(e,"args") else e}')
                 msg += f"\n!! Cannot update ChromeDriver. <{sys._getframe().f_lineno}@{__file__}>.  Exit."
                 msg += "\n"
-                raise
         except WebDriverException as e:
             msg += f" -- {type(e)}: {e.msg}\n"
             msg += f"!! Cannot instantiate WebDriver<{sys._getframe().f_lineno}@{__file__}>.  Exit.\n"
