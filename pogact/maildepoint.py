@@ -1,4 +1,4 @@
-#import time
+import time
 import re
 import pprint
 from selenium.webdriver.chrome.options import Options
@@ -6,33 +6,35 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import yaml
-import RPAbase.RakutenBase
 import logutils.AppDict
-from logutils import mailreporter
+import RPAbase.RakutenBase
 
 class MailDePoint(RPAbase.RakutenBase.RakutenBase):
-    # def pilot_setup(self):
-    #     super.pilot_setup(name)
     def __init__(self):
         super().__init__()
         self.appdict = logutils.AppDict.AppDict
         self.appdict.setup(
-            r'MailDePoint', __file__,
-            r'0.1', r'$Rev$', r'Alpha'
+            'MailDePoint', 'Rakuten', __file__,
+            '0.2', '$Rev$', 'Alpha'
         )
-        self.reporter = mailreporter.MailReporter(r'smtpconf.yaml', self.appdict.name)
 
-    def prepare(self):
-        super().prepare(self.appdict.name)
+
+    def prepare(self, name=None, clevel=None, flevel=None):
+        if name is None:
+            name = self.appdict.name
+        super().prepare(name)
         self.logger.info(f"@@@Start {self.appdict.name}({self.appdict.version_string()})")
+
 
     def pilot_setup(self):
         options = Options()
-        # options.add_argument(r'--headless')
+        if not __debug__:
+           options.add_argument(r'--headless')
         options.add_argument(r'--blink-settings=imagesEnabled=false')
         options.add_experimental_option('useAutomationExtension', False)
         options.add_experimental_option('excludeSwitches', ['enable-automation'])
         return super().pilot_setup(options)
+
 
     def pilot_unacquired1(self):
         """
@@ -81,6 +83,7 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
 
             logger.debug(f"  - Try to find the first mail with points.")
             # ------------------------------
+            time.sleep(1.5)
             divs = mail.find_elements_by_xpath("div")
             if len(divs) == 0:
                 logger.debug(f"  -- There are advertisements only.  Exit.")
@@ -132,7 +135,8 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
             logger.debug(f"  -- Grant staus after: {after_txt}.")
 
         except Exception as e:
-            logger.error(f' -- Ex={type(e)}: {"No message." if e.args is None else e.args}')
+            wk = self.exception_message(e)
+            logger.error(f' -- {wk}')
             # driver.back()
             # 未獲得メールの処理が完了しなければ中断したい
             raise(e)
@@ -143,6 +147,7 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
         wk['After'] = after_txt
         wk['Links'] = results
         return wk
+
 
     def pilot_unread1(self):
         """
@@ -183,13 +188,15 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
                     logger.debug(f'  - Found target: {wk}')
                     point_contents.append(wk)
         except Exception as e:
-            logger.error(f' Caught Ex(Ignore): Parsing mail list: {type(e)} {e.args}')
+            wk = self.exception_message(e)
+            logger.error(f' Caught Ex(Ignore): Parsing mail list: {wk}')
 
         logger.debug(f'  => Found {len(point_contents)} effective mail(s).')
         logger.debug(pprint.pformat(point_contents))
 
         return point_contents
-    
+
+
     def pilot_unread2(self,point_contents):
         """
         pilot to collect urls form each mail body.
@@ -209,7 +216,8 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
                     r'r', encoding=r'utf-8') as f:
                 point_urls = yaml.safe_load(f)
         except Exception as e:
-            logger.error(f' Caught Ex(Ignore): Reviving previous remain list: {type(e)} {e.args}')
+            wk = self.exception_message(e)
+            logger.error(f' Caught Ex(Ignore): Reviving previous remain list: {wk}')
 
         #--------------------
         logger.info(f' Collect newly arrived mails.')
@@ -243,12 +251,14 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
                 logger.debug(f" - Result: {result}")
                 point_urls.append(result)
         except Exception as e:
-            logger.error(f' Caught Ex(Ignore): Collect newly arrived mails: {type(e)} {e.args}')
+            wk = self.exception_message(e)
+            logger.error(f' Caught Ex(Ignore): Collect newly arrived mails: {wk}')
             logger.debug(f' Some points will be lost.')
 
         logger.debug(f'  => Collect point urls form {len(point_urls)} effective mail(s).')
         logger.debug(pprint.pformat(point_urls))
         return point_urls
+
 
     def pilot_unread3(self, point_urls):
         """
@@ -272,7 +282,8 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
                         driver.get(url)
                     self.pilot_result.append(f'Success: {len(urls)} url(s) in {subj}.')
                 except Exception as e:
-                    logger.error(f" {type(e)}: {e.args})")
+                    wk = self.exception_message(e)
+                    logger.error(f" {wk})")
                     # ひとつでもURL訪問に失敗したら次回へ先送り
                     logger.warn(f" - To visit {url}, something wrong is occured.  snooz.")
                     unvisited_urls.append(point_item)
@@ -288,10 +299,12 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
                     r'w', encoding=r'utf-8') as f:
                 yaml.dump(unvisited_urls, f)
         except Exception as e:
-            logger.error(f' Caught Ex(Ignore): Save remain url list: {type(e)} {e.args}')
+            wk = self.exception_message(e)
+            logger.error(f' Caught Ex(Ignore): Save remain url list: {wk}')
             logger.debug(f' Some url list(s) may be lost.')
         
         return unvisited_urls
+
 
     def pilot(self):
         """
@@ -354,17 +367,36 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
         finally:
             pass #driver.quit()
 
-        num_keys = result_msg.keys()
-        if len(num_keys) > 0:
-            self.reporter.critical(pprint.pformat(result_msg))
-            logger.debug(f' Report mail was sent. [Target users = {num_keys}]')
-        else:
-            logger.debug(f' No report mail was sent. [Target users = {num_keys}]')
+        pilot_result = {}
+        for key in result_msg.keys():
+            # 処理結果をユーザごとにレポート
+            pilot_result[key] = result_msg[key] if len(result_msg[key]) > 0 else '処理対象メールなし'
 
+        num_keys = len(pilot_result.keys())
+        logger.debug(f' All done. [Target users = {num_keys}]')
+
+        self.pilot_result = pilot_result
         logger.debug(f"@End pilot()")
 
+
 if __name__ == "__main__":
-    App = MailDePoint()
-    App.prepare()
-    App.pilot()
-    App.tearDown()
+    import pprint
+    try:
+        rpa = MailDePoint()
+        # 設定ファイル読み込み
+        rpa.prepare('Mail de Pointサービス')
+        # ブラウザ操作
+        # -- Webdriverの準備からquitまで実施する
+        rpa.pilot()
+        # ブラウザの後始末
+        rpa.tearDown()
+    except Exception as e:
+        rpa.pilot_result.insert(0,rpa.exception_message(e))
+    finally:
+        # 結果をメール送信する(ブラウザは終了済み)
+        result = rpa.pilot_result
+        if len(result) > 0:
+            rpa.report(
+                pprint.pformat(result, width=45)
+            )
+            pprint.pprint(result, width=45)

@@ -3,16 +3,12 @@ import datetime
 import random
 from operator import itemgetter
 from logging import DEBUG, INFO, WARNING
-# with selenium related libraries
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import TimeoutException, NoSuchElementException, WebDriverException, SessionNotCreatedException
 from webdrivermanager import ChromeDriverManager
-# local classed, packages
 import logutils.AppDict
-from logutils import mailreporter
 from RPAbase.RakutenBase import RakutenBase
 
 
@@ -28,13 +24,13 @@ class RWebSearch(RakutenBase):
         super().__init__()
         self.appdict = logutils.AppDict.AppDict
         self.appdict.setup(
-            self.CLASS_NAME, __file__,
-            r'0.1', r'$Rev$', r'Alpha'
+            self.CLASS_NAME, self.USER_GROUP, __file__,
+            '0.2', '$Rev$', 'Alpha'
         )
-        self.reporter = logutils.mailreporter.MailReporter(r'smtpconf.yaml', self.appdict.name)
 
-    def prepare(self):
-        # Excute supre() before you use self.logger
+
+    def prepare(self, name=None, clevel=None, flevel=None):
+        # Excute super() before you use self.logger
         super().prepare(self.appdict.name)
 
         logger = self.logger
@@ -53,7 +49,9 @@ class RWebSearch(RakutenBase):
     def pilot_setup(self):
         options = Options()
         options.add_extension("4.663_0.crx")                                # 楽天ウェブ検索をインポート
-        # options.add_argument("--headless")        # 楽天Web検索はheadlessモード不可
+        # 楽天Web検索はブラウザ拡張を利用するためheadlessモード不可
+        # if not __debug__:
+        #     options.add_argument(r'--headless')
         options.add_argument("--blink-settings=imagesEnabled=false")        # 画像非表示
         options.add_experimental_option('useAutomationExtension', False)
         options.add_experimental_option("excludeSwitches" , ["enable-automation"])  # disable-infobars
@@ -100,6 +98,7 @@ class RWebSearch(RakutenBase):
 
         logger.debug(f' - @realtime_words(): END')
         return words
+
 
     def search_rws(self, words):
         """ 楽天ウェブサーチの実行 """
@@ -156,6 +155,7 @@ class RWebSearch(RakutenBase):
         logger.debug(f' - @search_rws(): END')
         return int(cnt)
 
+
     def pilot_internal(self, account):
         logger = self.logger
         appdict = self.appdict
@@ -202,6 +202,7 @@ class RWebSearch(RakutenBase):
 
         logger.debug(f'- @pilot_internal(): END')
 
+
     def pilot(self):
         logger = self.logger
         appdict = self.appdict
@@ -225,18 +226,23 @@ class RWebSearch(RakutenBase):
 
 
 if __name__ == "__main__":
+    import pprint
     try:
-        import pprint
-        App = RWebSearch()
-        App.prepare()
-        App.pilot()
-        App.tearDown()
+        rpa = RWebSearch()
+        # 設定ファイル読み込み
+        rpa.prepare('楽天Webサーチ')
+        # ブラウザ操作
+        # -- Webdriverの準備からquitまで実施する
+        rpa.pilot()
+        # ブラウザの後始末
+        rpa.tearDown()
     except Exception as e:
-        App.logger.critical(f'!!{App.exception_message(e)}')
+        rpa.pilot_result.insert(0,rpa.exception_message(e))
     finally:
-        # App.pilot_result.sort(key=itemgetter(0))
-        result = App.pilot_result
-        if result != []:
-            App.report(
-                pprint.pformat(result, width=40)
+        # 結果をメール送信する(ブラウザは終了済み)
+        result = rpa.pilot_result
+        if len(result) > 0:
+            rpa.report(
+                pprint.pformat(result, width=45)
             )
+            pprint.pprint(result, width=45)

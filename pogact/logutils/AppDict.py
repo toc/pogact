@@ -21,7 +21,7 @@ class AppDict():
         raise NotImplementedError(errmsg)
 
     @classmethod
-    def setup(cls, name, mainfile, version=r'unknown', revision=r'unknown', status=r'Alpha'):
+    def setup(cls, name, users, mainfile, version=r'unknown', revision=r'unknown', status=r'Alpha'):
     # def __init__(self, name, mainfile, version=r'unknown', revision=r'unknown', status=r'Alpha'):
         """ 初期化処理
         保持するインスタンス変数は下記
@@ -32,6 +32,7 @@ class AppDict():
         - status: アプリケーションの状態を表す任意文字列: Alpha/Beta/無印=正式版を推奨(任意)
         """
         cls.name = str(name)
+        cls.user_group = str(users)
         cls.version = str(version)
         # SVNのキーワード置換が使われていればコアのみ抜き出す
         revision = str(revision)

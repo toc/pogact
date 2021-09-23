@@ -58,7 +58,7 @@ class Nanaco(RPAbase.RPAbase.RPAbase):
         # ==============================
         # Get user information
         users_grp = self.config.get('users',{})
-        users = users_grp.get('Nanaco',[])          # app group
+        users = users_grp.get(appdict.user_group,[])          # app group
         # Get service information
         svcs_grp = self.config.get('services',{})
         svcs = svcs_grp.get(appdict.name,[])             # app name
@@ -87,9 +87,9 @@ class Nanaco(RPAbase.RPAbase.RPAbase):
             # ==============================
             self.pilot_logout(user)
 
-        logger.info(f"全処理を完了")
-        # ==============================
-        self.tearDown()
+        # logger.info(f"全処理を完了")
+        # # ==============================
+        # self.tearDown()
         
         # logger.info(f" 処理結果: {self.pilot_result}, need_report: {need_report}")
         # if need_report > 0 and self.pilot_result != []:

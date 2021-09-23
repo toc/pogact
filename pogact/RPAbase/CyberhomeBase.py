@@ -2,10 +2,10 @@ import time
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-import RPAbase.RPAbase
+import RPAbase.RPAUserService
 
 
-class CyberhomeBase(RPAbase.RPAbase.RPAbase):
+class CyberhomeBase(RPAbase.RPAUserService.RPAUserService):
     """
     """
     def pilot_login(self, account):
@@ -14,7 +14,7 @@ class CyberhomeBase(RPAbase.RPAbase.RPAbase):
         wait = self.wait
         logger = self.logger
 
-        logger.info(f"Try to login to FNJ(cyberhome).")
+        logger.info(f"Try to login to FNJ(cyberhome mail).")
         # ==============================
         driver.get("https://wmail.cyberhome.ne.jp/login/")
         logger.debug('  wait for (By.ID, u"username")')
@@ -28,11 +28,12 @@ class CyberhomeBase(RPAbase.RPAbase.RPAbase):
 
         logger.debug('  SUBMIT login.')
         driver.find_element_by_xpath(u"//img[@alt='ログイン']").click()
-        time.sleep(5)
+        logger.debug(f' --wait.until element_to_be_clickable((By.ID,r"menu_mail_inbox_unread"))')
+        wait.until(EC.element_to_be_clickable((By.ID,r"menu_mail_inbox_unread")))
         
         return self.is_element_present(By.LINK_TEXT, u"新着をチェック")
 
-    def pilot_logout(self):
+    def pilot_logout(self, account=None):
         """
         Log-out from web site.
         """
@@ -40,6 +41,6 @@ class CyberhomeBase(RPAbase.RPAbase.RPAbase):
         logger = self.logger
         wait = self.wait
 
-        logger.info(f"Try to logout from FNJ(zeny).")
+        logger.info(f"Try to logout from FNJ(cyberhome mail).")
         # ==============================
         driver.get('https://wmail.cyberhome.ne.jp/logout/')

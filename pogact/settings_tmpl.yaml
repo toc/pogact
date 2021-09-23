@@ -27,9 +27,20 @@ users:
     id: "bar"
     pw: "bar's password"
 
+  JPBank:
+  - name: "ふー"
+    id: "foo"
+    pw: "foo's password"
+    hint:
+      "hint1_question?": "hint1_answer"
+      "hint2_question?": "hint2_answer"
+      "hint3_question?": "hint3_answer"
+
 services:
   Rkeiba:
   - "ふー"
   RWebSearch:
   - "ふー"
   - "ばず"
+  JPJrNISA:
+  - "ふー"

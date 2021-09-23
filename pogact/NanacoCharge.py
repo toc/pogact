@@ -18,8 +18,8 @@ class NanacoCharge(RPAbase.nanaco.Nanaco):
         super().__init__()
         self.appdict = AppDict
         self.appdict.setup(
-            r'NanacoCharge', # r'Nanaco_user', 
-            __file__, r'0.1', r'$Rev$', r'Alpha'
+            'NanacoCharge', 'Nanaco', 
+            __file__, '0.1', '$Rev$', 'Alpha'
         )
     
     def prepare(self, name=None, clevel=None, flevel=None):
@@ -27,7 +27,8 @@ class NanacoCharge(RPAbase.nanaco.Nanaco):
             name = self.appdict.name
         super().prepare(name)  #, clevel=None, flevel=flevel)
         options = Options()
-        # options.add_argument(r'--headless')
+        if not __debug__:
+            options.add_argument(r'--headless')
         # options.add_argument(r'--blink-settings=imagesEnabled=false')
         options.add_experimental_option(r'useAutomationExtension', False)
         options.add_experimental_option(r'excludeSwitches', ['enable-automation'])
@@ -99,8 +100,7 @@ class NanacoCharge(RPAbase.nanaco.Nanaco):
             print(u"結果確認は未実装！")
             # self.save_current_html('after_last_confirm.html')
         except Exception as e:
-            logger.error(f' Caught Ex(raise upstream): it happens something wrong.: {type(e)} {e.args}')
-            # self.save_current_html('00caught_exception.html')
+            logger.error(self.exception_message(e))
             if self.is_element_present(By.ID, r'textSystem'):
                 wk = driver.find_element_by_id(r'textSystem').text
                 error_text = ','.join(wk.split('\n'))
@@ -114,7 +114,7 @@ if __name__ == "__main__":
         from logging import WARNING, DEBUG
         import pprint
         App = NanacoCharge()
-        App.prepare(clevel=WARNING)
+        App.prepare('nanacoチャージ',clevel=WARNING)
         App.pilot()
         pprint.pprint(App.pilot_result, width=80, compact=True)
         App.tearDown()

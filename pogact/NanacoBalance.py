@@ -11,7 +11,7 @@ import re
 import yaml
 import RPAbase.nanaco
 from logutils.AppDict import AppDict
-import logutils.mailreporter
+
 
 class NanacoBalance(RPAbase.nanaco.Nanaco):
 
@@ -19,19 +19,19 @@ class NanacoBalance(RPAbase.nanaco.Nanaco):
         super().__init__()
         self.appdict = AppDict
         self.appdict.setup(
-            r'NanacoBalance', # r'Nanaco_user', 
-            __file__, r'0.1', r'$Rev$', r'Alpha'
+            'NanacoBalance', 'Nanaco', __file__,
+            '0.2', '$Rev$', 'Alpha'
         )
-        self.reporter = logutils.mailreporter.MailReporter(r'smtpconf.yaml', self.appdict.name)
     
     def prepare(self, name=None, clevel=None, flevel=None):
         if name is None:
             name = self.appdict.name
-        super().prepare(name)   #, clevel=None, flevel=flevel)
+        super().prepare(name)
 
     def pilot_setup(self):
         options = Options()
-        # options.add_argument(r'--headless')
+        if not __debug__:
+            options.add_argument(r'--headless')
         # options.add_argument(r'--blink-settings=imagesEnabled=false')
         options.add_experimental_option(r'useAutomationExtension', False)
         options.add_experimental_option(r'excludeSwitches', ['enable-automation'])
@@ -48,7 +48,6 @@ class NanacoBalance(RPAbase.nanaco.Nanaco):
         try:
             # 残高情報を確認
             logger.info(f'  - 残高情報を確認')
-            # driver.get("https://www.nanaco-net.jp/pc/emServlet")
             logger.debug(f'  wait for visibility_of_element_located: (By.ID,"memberTblMid")')
             wait.until(EC.visibility_of_element_located((By.ID,"memberTblMid")))
             #
@@ -77,7 +76,7 @@ class NanacoBalance(RPAbase.nanaco.Nanaco):
                 logger.debug(f' --{wk2}')
                 result.append(f' --{wk2}')
         except Exception as e:
-            wk = f' Caught Ex(raise upstream): it happens something wrong.: {type(e)} {e.args}'
+            wk = self.exception_message(e)
             logger.error(wk)
             result.append(wk)
         finally:
@@ -85,20 +84,23 @@ class NanacoBalance(RPAbase.nanaco.Nanaco):
 
 
 if __name__ == "__main__":
+    import pprint
     try:
-        from logging import WARNING, DEBUG
-        import pprint
-        App = NanacoBalance()
-        App.prepare(clevel=WARNING)
-        App.pilot()
-        if App.pilot_result != []:
-            App.reporter.report(
-                pprint.pformat(App.pilot_result, width=72)
-            )
-            App.logger.debug(f" 処理結果を　Mailreporter　経由で送信しました")
-
+        rpa = NanacoBalance()
+        # 設定ファイル読み込み
+        rpa.prepare('nanaco残高確認')
+        # ブラウザ操作
+        # -- Webdriverの準備からquitまで実施する
+        rpa.pilot()
+        # ブラウザの後始末
+        rpa.tearDown()
     except Exception as e:
-        print(e.args)
-        if App:
-            if App.driver:
-                App.driver.quit()
+        rpa.pilot_result.insert(0,rpa.exception_message(e))
+    finally:
+        # 結果をメール送信する(ブラウザは終了済み)
+        result = rpa.pilot_result
+        if len(result) > 0:
+            rpa.report(
+                pprint.pformat(result, width=45)
+            )
+            pprint.pprint(result, width=45)

@@ -18,6 +18,7 @@ from selenium.common.exceptions import WebDriverException
 from webdrivermanager import ChromeDriverManager
 import yaml
 from logutils.logger import Logger
+import logutils.mailreporter
 
 
 class RPAbase():
@@ -32,6 +33,7 @@ class RPAbase():
         self.driver = None
         self.driverinfo = []
         self.logger = None
+        self.reporter = None
         self.wait = None
         self.config = {}
         self.pilot_param = {}
@@ -55,15 +57,21 @@ class RPAbase():
             with open(r'settings.yaml', 'r', encoding=r'utf-8') as f:
                 self.config = yaml.safe_load(f)
         except Exception as e:
-            logger.error(f' Caught Ex(Ignore): Read settings.yaml: {type(e)} {e.args}')
+            logger.error(self.exception_message(e))
             self.config = {}
         # last done file
         try:
             with open('last_done.yaml', 'r', encoding='utf-8') as f:
                 self.last_done = yaml.safe_load(f)
         except Exception as e:
-            logger.error(f' Caught Ex(Ignore): Read last_done.yaml: {type(e)} {e.args}')
+            logger.error(self.exception_message(e))
             self.last_done = {}
+        # mail reporter
+        try:
+            self.reporter = logutils.mailreporter.MailReporter(r'smtpconf.yaml', name)
+        except Exception as e:
+            self.logger.warn(self.exception_message(e))
+            self.reporter = None
 
     # @return: driver, wait
     def pilot_setup(self, options=None):
@@ -109,15 +117,15 @@ class RPAbase():
                 self.driver = webdriver.Chrome(driver_path, options=options)
             except Exception as e:
                 # msg += f" -- {type(e)}: {e.msg}\n"
-                logger.critical(f'  !! Cannot update ChromeDriver.  {type(e)}: {e.args if hasattr(e,"args") else e}')
+                logger.critical(f'  !! Cannot update ChromeDriver.  {self.exception_message(e)}')
                 msg += f"\n!! Cannot update ChromeDriver. <{sys._getframe().f_lineno}@{__file__}>.  Exit."
                 msg += "\n"
         except WebDriverException as e:
-            msg += f" -- {type(e)}: {e.msg}\n"
+            msg += f" -- {self.exception_message(e)}\n"
             msg += f"!! Cannot instantiate WebDriver<{sys._getframe().f_lineno}@{__file__}>.  Exit.\n"
             msg += "\n"
         except Exception as e:
-            msg += f" -- Ex={type(e)}: {'No message.' if e.args is None else e.args}\n"
+            msg += f" -- {self.exception_message(e)}\n"
             msg += "\n"
         finally:
             if self.driver is None:
@@ -130,6 +138,13 @@ class RPAbase():
 
         return (self.driver, self.wait)
    
+    def silent_setup(self, driver, wait, logger):
+        self.driver = driver
+        self.wait = wait
+        self.logger = logger
+        logger.debug(f'((silent_setup)): done')
+
+
     def pilot_login(self, account):
         """
         Called from pilot().
@@ -150,11 +165,13 @@ class RPAbase():
         """
         raise NotImplementedError('pilot()')
 
-    def report(self, msg=None, subject=None):
-        if msg is None:
-            msg = self.pilot_result
+    def report(self, msg=None, subject=None, level=INFO):
         if self.reporter is not None:
-            self.reporter.report(msg)
+            if msg is None:
+                msg = self.pilot_result
+            if subject is not None:
+                self.reporter.setSubjectBase(subject)
+            self.reporter.report(msg, level)
 
     def tearDown(self):
         # Save last_done
@@ -162,7 +179,7 @@ class RPAbase():
             with open('last_done.yaml', 'w', encoding='utf-8') as f:
                 yaml.dump(self.last_done, f, default_flow_style=False, allow_unicode=True)
         except Exception as e:
-            self.logger.error(f' Caught Ex(Ignore): Save last_done.yaml: {type(e)} {e.args}')
+            self.logger.error(self.exception_message(e))
         # Clear webdriver
         if self.driver:
             self.driver.quit()

@@ -10,7 +10,6 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import NoAlertPresentException
 from logging import DEBUG, INFO    # , WARNING, ERROR, CRITICAL
 import logutils.AppDict
-import logutils.mailreporter
 from RPAbase.RkeibaBase import RkeibaBase
 
 
@@ -21,25 +20,28 @@ class Rkeiba(RkeibaBase):
         super().__init__()
         self.appdict = logutils.AppDict.AppDict
         self.appdict.setup(
-            r'Rkeiba', __file__,
-            r'0.1', r'$Rev$', r'Alpha'
+            'Rkeiba', 'Rakuten', __file__,
+            '0.2', '$Rev$', 'Alpha'
         )
-        self.reporter = logutils.mailreporter.MailReporter(r'smtpconf.yaml', self.appdict.name)
 
-    def prepare(self):
+
+    def prepare(self, name=None, clevel=None, flevel=None):
         super().prepare(self.appdict.name)
         self.today = datetime.datetime.now().replace(hour=0,minute=0,second=0,microsecond=0)
         self.logger.debug(f"{self.today.strftime('%c')}")
         self.logger.info(f"@@@Start {self.appdict.name}({self.appdict.version_string()})")
 
+
     def pilot_setup(self):
         options = Options()
-        options.add_argument(r'--headless')
+        if not __debug__:
+            options.add_argument(r'--headless')
         options.add_argument(r'--blink-settings=imagesEnabled=false')
         options.add_experimental_option('useAutomationExtension', False)
         options.add_experimental_option('excludeSwitches', ['enable-automation'])
 
         return super().pilot_setup(options)
+
 
     def pilot_depositing(self, user):
         driver = self.driver
@@ -81,6 +83,7 @@ class Rkeiba(RkeibaBase):
         logger.debug('  wait until: element_to_be_clickable((By.LINK_TEXT, u"投票画面へ"))')
         wait.until(EC.element_to_be_clickable((By.LINK_TEXT, u"投票画面へ"))).click()
 
+
     def check_balance(self):
         """
         Check current balance and return it as integer.
@@ -102,6 +105,7 @@ class Rkeiba(RkeibaBase):
 
         logger.debug(f'  @@END check balance')
         return balance
+
 
     def pilot(self):
         driver, wait = self.pilot_setup()
@@ -202,12 +206,12 @@ class Rkeiba(RkeibaBase):
                     pass
 
             except (TimeoutException, NoSuchElementException) as e:
-                self.pilot_result.append(f"{user['name']}: Ex={type(e)}")
+                self.pilot_result.append(f"{user['name']}: Ex={self.exception_message(e)}")
                 logger.error(e.args)
             except Exception as e:
-                self.pilot_result.append(f"{user['name']}: Ex={type(e)} {e.args}")
+                self.pilot_result.append(f"{user['name']}: Ex={self.exception_message(e)}")
                 # self.pilot_result.append(f"{user['name']}: Unexpected error: {sys.exc_info()[0]}")
-                logger.critical(f"Exception: {type(e)} {e.args}")
+                logger.critical(f"Exception: {self.exception_message(e)}")
             finally:
                 logger.info(' ポップアップ終了～ログアウト')
                 # ==============================
@@ -225,15 +229,29 @@ class Rkeiba(RkeibaBase):
 
         logger.info(f"全処理を完了")
         # ==============================
-        self.tearDown()
-        
         logger.info(f" 処理結果: {self.pilot_result}, need_report: {need_report}")
-        if need_report > 0 and self.pilot_result != []:
-            self.reporter.report(f" 処理結果: {self.pilot_result}")
-            logger.debug(f" 処理結果を　Mailreporter　経由で送信しました")
+        if need_report == 0:
+            self.pilot_result = []
 
 
 if __name__ == "__main__":
-    App = Rkeiba()
-    App.prepare()
-    App.pilot()
+    import pprint
+    try:
+        rpa = Rkeiba()
+        # 設定ファイル読み込み
+        rpa.prepare('楽天競馬')
+        # ブラウザ操作
+        # -- Webdriverの準備からquitまで実施する
+        rpa.pilot()
+        # ブラウザの後始末
+        rpa.tearDown()
+    except Exception as e:
+        rpa.pilot_result.insert(0,rpa.exception_message(e))
+    finally:
+        # 結果をメール送信する(ブラウザは終了済み)
+        result = rpa.pilot_result
+        if len(result) > 0:
+            rpa.report(
+                pprint.pformat(result, width=45)
+            )
+            pprint.pprint(result, width=45)

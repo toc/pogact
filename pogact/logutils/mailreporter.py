@@ -10,12 +10,8 @@ class MailReporter():
     """ Send report via Yahoo mail. """
     def __init__(self, config_file=None, mail_subject=None):
         """
-        logging.SMTPHandler()の使用を前提に、初期設定のみ行う。
+        初期設定のみ行う。
         """
-        # ## set up logger
-        # self.logger = logging.getLogger('MailReporter')
-        # self.logger.setLevel(logging.INFO)
-
         ## read setting file.
         try:
             with open(config_file, 'r', encoding='utf-8') as f:
@@ -56,30 +52,22 @@ class MailReporter():
 
         return
 
-    def report(self, message):
-    # def report(self, level, message):
-        # if self.logger:
-        #     if level == logging.FATAL:
-        #         self.logger.critical(message)
-        #     elif level == logging.ERROR:
-        #         self.logger.error(message)
-        #     elif level == logging.INFO:
-        #         self.logger.info(message)
-        #     elif level == logging.DEBUG:
-        #         self.logger.debug(message)
-        #     else:
-        #         # Use warning if level is unknown value.
-        #         self.logger.warning(message)
-        print(message)
-        self.send_message(message)
- 
-    def send_message(self, message):
+    def editSubject(self, level):
+        converter = {
+            logging.CRITICAL:'★★',
+            logging.FATAL:'★★',
+            logging.ERROR:'★',
+            logging.WARNING:'☆',
+            logging.INFO:'○',
+        }
+        return converter.get(level,'') + self.subject
+
+    def report(self, message, level=logging.INFO):
         """
         """
-        print(message)
         try:
             msg = MIMEText(message, "plain")
-            msg["Subject"] = self.subject
+            msg["Subject"] = self.editSubject(level)
             msg["From"] = self.fromaddr
             msg["To"] = ','.join(self.toaddrs)
             
@@ -98,13 +86,8 @@ class MailReporter():
             smtpex = smtplib.SMTPException(f'Caught Exception: {type(e)} {e.args}.')
             raise smtpex
 
-    def setSubjectBase(self, subject):
-        self.subject = subject
-
-    # Obsolete
     def info(self, msg):
-        self.report(msg)
+        self.report(msg, logging.INFO)
 
-    # Obsolete
     def critical(self, msg):
-        self.report(msg)
+        self.report(msg, logging.CRITICAL)

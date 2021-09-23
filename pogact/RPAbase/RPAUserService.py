@@ -1,6 +1,5 @@
 import random
 import RPAbase.RPAbase
-import logutils.mailreporter
 
 class RPAUserService(RPAbase.RPAbase.RPAbase):
     """

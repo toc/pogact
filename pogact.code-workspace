@@ -9,5 +9,20 @@
 		"[log]": {
 			"files.encoding": "utf8"
 			},
+			"plantuml.render": "PlantUMLServer",
+			"plantuml.server": "https://www.plantuml.com/plantuml",
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"cwd": "${workspaceFolder}/pogact",
+				"name": "Python: Current File",
+				"type": "python",
+				"request": "launch",
+				"program": "${file}",
+				"console": "integratedTerminal"
+			}
+		]
 	}
 }
