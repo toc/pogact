@@ -15,6 +15,7 @@ import logutils.AppDict
 import RPAbase.CyberhomeBase
 import RPAbase.RakutenBase
 import RPAbase.MoppyBase
+import RPAbase.HapitasBase
 
 class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
     """
@@ -41,6 +42,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         """
         super().prepare(self.appdict.name)
         try:
+            #TODO: last_done.yamlで手当できないか？
             fname = str(self.appdict.name).lower()
             with open(f'{fname}_remain.yaml', 'r', encoding='utf-8') as f:
                 self.appdict.data['ptlinks'] = yaml.safe_load(f)
@@ -57,7 +59,9 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         1. Fetch some information(s) with web browser.
         """
         options = Options()
-        # options.add_argument(r'--headless')
+        # Headlessモードでの実行不可
+        # if not __debug__:
+        #     options.add_argument(r'--headless')
         # イメージボタンが多用されているため、img表示は必要
         # options.add_argument(r'--blink-settings=imagesEnabled=false')
         options.add_experimental_option('useAutomationExtension', False)
@@ -65,11 +69,16 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
 
         driver, wait = super().pilot_setup(options)
         # setup MIX-in modules.
+        #TODO: 名前からインスタンス化できればスッキリ書けそう！
         self.appdict.data['sites'] = []
         ### Moppy
         wk = RPAbase.MoppyBase.MoppyBase()
         wk.silent_setup(driver, wait, self.logger)
         self.appdict.data['sites'].append(['Moppy',wk])
+        ### Hapitas
+        wk = RPAbase.HapitasBase.HapitasBase()
+        wk.silent_setup(driver, wait, self.logger)
+        self.appdict.data['sites'].append(['Hapitas',wk])
         ### Rakuten
         wk = RPAbase.RakutenBase.RakutenBase()
         wk.silent_setup(driver, wait, self.logger)
@@ -168,7 +177,29 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
             wk = l.get("href")
             if regex.match(wk):
                 links.append(wk)
-                logger.debug(f'--FOUND&STORE:a href={wk}')
+                logger.debug(f'--FOUND:a href={wk}')
+
+        # URLリストを返却、空リストなら対象なし(楽天メール外？)
+        logger.debug(f'    解析終了: 該当URL数[{len(links)}]')
+        return links
+
+
+    def pilot_internal_pickup_url_hapitas(self, subj, fr):
+        driver = self.driver
+        logger = self.logger
+
+        logger.debug('  - hapitasを想定してメール本文を解析')
+        # ------------------------------
+        links = []
+
+        soup = BeautifulSoup(driver.page_source,"lxml")
+        lists = soup.select("a")
+        regex = re.compile(r'^https://r34.smp.ne.jp/u/\S+\.html$', re.A)
+        for l in lists:
+            wk = l.get("href")
+            if regex.match(wk):
+                links.append(wk)
+                logger.debug(f'--FOUND:a href={wk}')
 
         # URLリストを返却、空リストなら対象なし(楽天メール外？)
         logger.debug(f'    解析終了: 該当URL数[{len(links)}]')
@@ -251,9 +282,9 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
                 logger.debug('  - it seems MOPPY\'s mail.')
                 pickup_type = 'Moppy'
                 links = self.pilot_internal_pickup_url_moppy(mbi_subject, mbi_from)
-            # elif re.search(r'mailmag@hapitas.jp>', mbi_from):
-            #     pickup_type = 'hapitas'
-            #     links = self.pilot_internal_pickup_url_hapitas(mbi_subject, mbi_from)
+            elif re.search(r'mailmag@hapitas.jp>', mbi_from):
+                pickup_type = 'Hapitas'
+                links = self.pilot_internal_pickup_url_hapitas(mbi_subject, mbi_from)
             else:
                 logger.debug('  - it seems any other mail: suppose as Rakuten.')
                 pickup_type = 'Rakuten'
@@ -325,7 +356,8 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         logger.debug(f'- 一時保留URL={sum_NG}')
         fname = str(self.appdict.name).lower()
         with open(f'{fname}_remain.yaml', 'w', encoding='utf-8') as f:
-            yaml.dump(self.appdict.data['ptlinks'],f)
+            #TODO: last_done.yamlで手当できないか？
+            yaml.dump(self.appdict.data['ptlinks'], f, default_flow_style=False, allow_unicode=True)
         self.appdict.data['log'][user['name']].append(f'Save not-visited URLs. {sum_NG} link(s).')
 
         self.pilot_result.append([user['name'],self.appdict.data['log'][user['name']]])
