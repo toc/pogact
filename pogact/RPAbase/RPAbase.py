@@ -42,7 +42,7 @@ class RPAbase():
         self.accept_next_alert = True
 
 
-    def prepare(self, name=__name__):
+    def prepare(self, subject=__name__):
         """
         Prepare something before execute browser.
         1. Read setting file(s).
@@ -50,7 +50,7 @@ class RPAbase():
         1. Prepare logger, work file/folder, and so on.
         """
         # logger
-        self.logger = Logger(name, clevel=DEBUG if __debug__ else INFO, flevel=DEBUG)
+        self.logger = Logger(self.appdict.name, clevel=DEBUG if __debug__ else INFO, flevel=DEBUG)
         logger = self.logger
         # Setting file
         try:
@@ -68,13 +68,13 @@ class RPAbase():
             self.last_done = {}
         # mail reporter
         try:
-            self.reporter = logutils.mailreporter.MailReporter(r'smtpconf.yaml', name)
+            self.reporter = logutils.mailreporter.MailReporter(r'smtpconf.yaml', subject)
         except Exception as e:
             self.logger.warn(self.exception_message(e))
             self.reporter = None
 
     # @return: driver, wait
-    def pilot_setup(self, options=None):
+    def pilot_setup(self, options=None, waitsec=10):
         """
         Called from pilot().
         Execute web browser, and set up for auto-pilot.
@@ -132,9 +132,9 @@ class RPAbase():
                 logger.critical(msg)
                 raise SessionNotCreatedException(msg)
 
-        self.driver.implicitly_wait(10)
+        self.driver.implicitly_wait(waitsec)
         logger.debug(f'  -- {self.driver}')
-        self.wait = WebDriverWait(self.driver, 10)
+        self.wait = WebDriverWait(self.driver, waitsec)
 
         return (self.driver, self.wait)
    
