@@ -35,7 +35,8 @@ class RPAbaseRecapture(RPAbase.RPAbase.RPAbase):
         1. Fetch some information(s) with web browser.
         """
         logger = self.logger
-        userdata_dir = r'C:\Users\tocta\AppData\Local\Google\Chrome\User Data'  
+        wk = self.config.get('general', {})  
+        userdata_dir = wk.get('userdatadir',r'C:\Users\Default\AppData\Local\Google\Chrome\User Data')  
         if username is None:
             raise NotImplementedError('pilot_setup() with username.')
 

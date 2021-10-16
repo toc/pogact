@@ -110,6 +110,11 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         logger.debug(f' - {sitename}のユーザ情報を取得')
         # ------------------------------
         users_in_site = self.config.get('users',{}).get(sitename,{})
+        if len(users_in_site) == 0:
+            # 対象サイトの利用なし
+            logger.warn(f'    - no users exist in sitename[{sitename}].  SKIP.')
+            return [0,0]
+        
         logger.debug(f'   - users in site:>{[user["name"] for user in users_in_site]}<')
         for user in users_in_site:
             if user['name'] == name:
@@ -235,7 +240,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
 
     def pilot_internal(self, user):
         driver = self.driver
-        wati = self.wait
+        wait = self.wait
         logger = self.logger
         logger.debug('@@pilot_internal:START')
 
@@ -244,6 +249,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         if self.appdict.data.get('log') is None:
             self.appdict.data['log'] = {}
         self.appdict.data['log'][user['name']] = []
+        wait.until(EC.element_to_be_clickable((By.ID, "menu_mail_inbox_unread")))
         driver.find_element_by_id("menu_mail_inbox_unread").click()
         mail_table = driver.find_element_by_id(r"mail_list_tbody")
         mails = mail_table.find_elements_by_tag_name(r"tr")
@@ -336,6 +342,8 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
             ).click()
             time.sleep(1)
             logger.debug('  - 削除確認ダイアログの表示をチェック')
+            wait.until(EC.alert_is_present())
+            time.sleep(1)
             self.assertEqual(u"メールをごみ箱に移動しました。", self.close_alert_and_get_its_text())
         else:
             logger.debug(f'- 削除対象メールなし(#found_mail={num_found})')
