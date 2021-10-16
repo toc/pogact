@@ -247,7 +247,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         driver.find_element_by_id("menu_mail_inbox_unread").click()
         mail_table = driver.find_element_by_id(r"mail_list_tbody")
         mails = mail_table.find_elements_by_tag_name(r"tr")
-        self.appdict.data['log'][user['name']].append(f'Cyberhome未読メール一覧を取得: {len(mails)}')
+        self.appdict.data['log'][user['name']].append(f'Unread mails: {len(mails)}')
 
         ptlinks = self.appdict.data['ptlinks'].get(user['name'],{})
         found_mail = []
@@ -311,7 +311,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         if len(mails) > 0:
             mails[-1].find_element_by_xpath('td[1]/div/input').click()
 
-        self.appdict.data['log'][user['name']].append(f'Cyberhome未読メールを順次解析: {len(found_link)} link(s) in {len(found_mail)} mail(s).')
+        self.appdict.data['log'][user['name']].append(f'Analyze mails: {len(found_link)} link(s) in {len(found_mail)} mail(s).')
 
         logger.info('ポイントURL付きメールを削除')
         # ==============================
@@ -339,7 +339,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
             self.assertEqual(u"メールをごみ箱に移動しました。", self.close_alert_and_get_its_text())
         else:
             logger.debug(f'- 削除対象メールなし(#found_mail={num_found})')
-        self.appdict.data['log'][user['name']].append(f'ポイントURL付きメールを削除: {num_found} mail(s).')
+        self.appdict.data['log'][user['name']].append(f'Delete processed mails: {num_found} mail(s).')
 
         logger.info('抽出したポイント付きURLを訪問')
         # ==============================
@@ -349,7 +349,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
             cnt_OK, cnt_NG = self.pilot_internal_visit(user['name'], i[0], i[1])
             sum_OK += cnt_OK
             sum_NG += sum_NG
-        self.appdict.data['log'][user['name']].append(f'抽出したポイント付きURLを訪問: OK={sum_OK} / NG={sum_NG}')
+        self.appdict.data['log'][user['name']].append(f'Visit URLs: OK={sum_OK} / NG={sum_NG}')
 
         logger.info(f'アクセスできなかったURLを一時保存(次回処理)')
         # ==============================

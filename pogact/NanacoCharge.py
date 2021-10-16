@@ -26,12 +26,16 @@ class NanacoCharge(RPAbase.nanaco.Nanaco):
         if name is None:
             name = self.appdict.name
         super().prepare(name)  #, clevel=None, flevel=flevel)
+
+    def pilot_setup(self):
         options = Options()
         if not __debug__:
             options.add_argument(r'--headless')
         # options.add_argument(r'--blink-settings=imagesEnabled=false')
         options.add_experimental_option(r'useAutomationExtension', False)
         options.add_experimental_option(r'excludeSwitches', ['enable-automation'])
+
+        return super().pilot_setup(options)
 
     def pilot_internal(self, account):
         driver = self.driver
