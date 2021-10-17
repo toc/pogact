@@ -12,6 +12,7 @@ class AppDict():
     status = ''
     resource_path = Path(__file__)
     executed_file = Path(__file__)
+    temporary_path = Path(__file__).parent
     data = {}
 
     def __init__(self):
@@ -51,6 +52,11 @@ class AppDict():
         wk = Path(sys.executable) if hasattr(sys, 'frozen') \
             else Path(mainfile)
         cls.executed_file = wk.resolve()
+        # 作業用フォルダ(フルパス)
+        #   起動ファイル配置場所にtempを作成(Script起動/pyinstaller化とも)
+        wk = cls.executed_file.parent / 'temp'
+        wk.mkdir(parents=True,exist_ok=True)
+        cls.temporary_path = wk.resolve()
         # ユーザが任意に使える辞書領域
         cls.data = dict()
 
@@ -70,7 +76,8 @@ class AppDict():
     def wkfile(cls, substr=r'', suffix=r'tmp'):
         """ Return full path of wkfile. (Path object) """
         ##TODO: Check & convert substr which MUST be contained printable chars only.
-        wkfile = cls.executed_file.with_name(f'{cls.basename()}{substr}.{suffix}')
+        # wkfile = cls.executed_file.with_name(f'{cls.basename()}{substr}.{suffix}')
+        wkfile = cls.temporary_path / f'{cls.basename()}{substr}.{suffix}'
         return wkfile
 
     @classmethod

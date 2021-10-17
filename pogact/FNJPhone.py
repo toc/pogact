@@ -172,21 +172,24 @@ class FNJPhone(RPAbase.FNJbase.FNJbase):
 
                     logger.debug(' ハードコピーを採取')
                     # ------------------------------
-                    driver.save_screenshot(f"FNJPhone-{yyyymm}.png")
+                    wk = str(self.appdict.wkfile(f"-{yyyymm}", "png"))
+                    driver.save_screenshot(wk)
                     table = driver.find_element_by_xpath(r'//*[@id="TransactionBody1_PanelList"]/table[2]/tbody/tr/td/table')
 
                     logger.debug(' 請求項部分をhtmlで切り出して保存')
                     # ------------------------------
                     ps = driver.page_source
+                    wk = str(self.appdict.wkfile(f"-tmp", "html"))
                     logger.debug(' -- Webソースをutf-8に揃えて解析する(tmpファイルを使用)')
-                    with open(f"FNJPhone-tmp.html", 'w', encoding='utf-8') as fp:
+                    with open(wk, 'w', encoding='utf-8') as fp:
                         fp.write(ps)
-                    with open(f"FNJPhone-tmp.html", 'r', encoding='utf-8') as f:
+                    with open(wk, 'r', encoding='utf-8') as f:
                         ps = f.read()
                     obj = pd.read_html(ps, match='サービス名')
                     logger.debug(f'  numObj: {len(obj)}, obj[4]={obj[4]} ')
                     self.pilot_result.append([f"{param['year']}{param['month']}", obj[4].to_csv()])
-                    with open(f"FNJPhone-{yyyymm}.html", 'w', encoding='utf-8') as f:
+                    wk = str(self.appdict.wkfile(f"-{yyyymm}", "html"))
+                    with open(wk, 'w', encoding='utf-8') as f:
                         f.write(
                             self.config['html_string'].format(
                                 css_string=self.config['css_string'],
