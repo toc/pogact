@@ -16,6 +16,7 @@ import RPAbase.CyberhomeBase
 import RPAbase.RakutenBase
 import RPAbase.MoppyBase
 import RPAbase.HapitasBase
+import RPAbase.SBIgroupBase
 
 class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
     """
@@ -79,6 +80,10 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         wk = RPAbase.HapitasBase.HapitasBase()
         wk.silent_setup(driver, wait, self.logger)
         self.appdict.data['sites'].append(['Hapitas',wk])
+        ### SBIgroup
+        wk = RPAbase.SBIgroupBase.SBIgroupBase()
+        wk.silent_setup(driver, wait, self.logger)
+        self.appdict.data['sites'].append(['SBIgroup',wk])
         ### Rakuten
         wk = RPAbase.RakutenBase.RakutenBase()
         wk.silent_setup(driver, wait, self.logger)
@@ -184,7 +189,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
                 links.append(wk)
                 logger.debug(f'--FOUND:a href={wk}')
 
-        # URLリストを返却、空リストなら対象なし(楽天メール外？)
+        # URLリストを返却、空リストなら対象なし(Moppyメール外？)
         logger.debug(f'    解析終了: 該当URL数[{len(links)}]')
         return links
 
@@ -206,7 +211,29 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
                 links.append(wk)
                 logger.debug(f'--FOUND:a href={wk}')
 
-        # URLリストを返却、空リストなら対象なし(楽天メール外？)
+        # URLリストを返却、空リストなら対象なし(Hapitasメール外？)
+        logger.debug(f'    解析終了: 該当URL数[{len(links)}]')
+        return links
+
+
+    def pilot_internal_pickup_url_sbigroup(self, subj, fr):
+        driver = self.driver
+        logger = self.logger
+
+        logger.debug('  - sbiポイントを想定してメール本文を解析')
+        # ------------------------------
+        links = []
+
+        soup = BeautifulSoup(driver.page_source,"lxml")
+        lists = soup.select("a")
+        regex = re.compile(r'^http://www7.webcas.net/mail/u/l\?p=\S+$', re.A)
+        for l in lists:
+            wk = l.get("href")
+            if regex.match(wk):
+                links.append(wk)
+                logger.debug(f'--FOUND:a href={wk}')
+
+        # URLリストを返却、空リストなら対象なし(SBIポイントメール外？)
         logger.debug(f'    解析終了: 該当URL数[{len(links)}]')
         return links
 
@@ -253,7 +280,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         driver.find_element_by_id("menu_mail_inbox_unread").click()
         mail_table = driver.find_element_by_id(r"mail_list_tbody")
         mails = mail_table.find_elements_by_tag_name(r"tr")
-        self.appdict.data['log'][user['name']].append(f'Unread mails: {len(mails)}')
+        self.appdict.data['log'][user['name']].append(f'Mails: {len(mails)}')
 
         ptlinks = self.appdict.data['ptlinks'].get(user['name'],{})
         found_mail = []
@@ -291,6 +318,9 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
             elif re.search(r'mailmag@hapitas.jp>', mbi_from):
                 pickup_type = 'Hapitas'
                 links = self.pilot_internal_pickup_url_hapitas(mbi_subject, mbi_from)
+            elif re.search(r'info@sbipoint.jp>', mbi_from):
+                pickup_type = 'SBIgroup'
+                links = self.pilot_internal_pickup_url_sbigroup(mbi_subject, mbi_from)
             else:
                 logger.debug('  - it seems any other mail: suppose as Rakuten.')
                 pickup_type = 'Rakuten'
@@ -317,7 +347,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         if len(mails) > 0:
             mails[-1].find_element_by_xpath('td[1]/div/input').click()
 
-        self.appdict.data['log'][user['name']].append(f'Analyze mails: {len(found_link)} link(s) in {len(found_mail)} mail(s).')
+        self.appdict.data['log'][user['name']].append(f'-> {len(found_link)} link(s) in {len(found_mail)} mail(s).')
 
         logger.info('ポイントURL付きメールを削除')
         # ==============================
@@ -347,7 +377,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
             self.assertEqual(u"メールをごみ箱に移動しました。", self.close_alert_and_get_its_text())
         else:
             logger.debug(f'- 削除対象メールなし(#found_mail={num_found})')
-        self.appdict.data['log'][user['name']].append(f'Delete processed mails: {num_found} mail(s).')
+        self.appdict.data['log'][user['name']].append(f'Deleted mails: {num_found}')
 
         logger.info('抽出したポイント付きURLを訪問')
         # ==============================
@@ -357,7 +387,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
             cnt_OK, cnt_NG = self.pilot_internal_visit(user['name'], i[0], i[1])
             sum_OK += cnt_OK
             sum_NG += sum_NG
-        self.appdict.data['log'][user['name']].append(f'Visit URLs: OK={sum_OK} / NG={sum_NG}')
+        self.appdict.data['log'][user['name']].append(f'Visited: o={sum_OK} / x={sum_NG}')
 
         logger.info(f'アクセスできなかったURLを一時保存(次回処理)')
         # ==============================
@@ -366,7 +396,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         with open(f'{fname}_remain.yaml', 'w', encoding='utf-8') as f:
             #TODO: last_done.yamlで手当できないか？
             yaml.dump(self.appdict.data['ptlinks'], f, default_flow_style=False, allow_unicode=True)
-        self.appdict.data['log'][user['name']].append(f'Save not-visited URLs. {sum_NG} link(s).')
+        self.appdict.data['log'][user['name']].append(f'Non-visited: {sum_NG} link(s).')
 
         self.pilot_result.append([user['name'],self.appdict.data['log'][user['name']]])
         logger.debug('@@pilot_internal: END')
