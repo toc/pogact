@@ -37,6 +37,8 @@ class MoppyBase(RPAUserService):
         driver.find_element(By.CSS_SELECTOR,".a-btn__login").click()
         logger.debug('  SUBMIT login.')
         ###
+        pageobj = (By.TAG_NAME, 'body')
+        wait.until(EC.visibility_of_element_located(pageobj))
         if self.is_element_present(By.ID, 'modalTop'):
             logger.warn('  modalTop 発見。閉じます。')
             driver.find_element(By.ID, 'modalTop_later').click()

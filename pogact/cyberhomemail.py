@@ -130,43 +130,48 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
             if wk.get(i): wk.pop(i)
         logger.debug(f'   - selected: >{wk}<')
 
-        logger.info(f' {sitename}にログイン')
+        logger.info(f' ポイントURL訪問')
         # ==============================
         if len(driver.window_handles) < 2:
             logger.debug('   - 新規タブを作成')
             # ------------------------------
             driver.execute_script("window.open()")
         driver.switch_to.window(driver.window_handles[1])
-
-        logger.debug(f'   - {sitename}: ログインページにアクセス')
-        # ------------------------------
-        site.pilot_login(user)
-
-        logger.info(' ポイントURLに順次アクセス')
-        # ==============================
-        not_visited = []
         total_count = 0
-        for link in appdict.data['ptlinks'][name][sitename]:
-            total_count += 1
-            try:
-                logger.debug(f' - ポイントURLアクセス({total_count}/{num_ptlinks})')
-                # ------------------------------
-                driver.get(link)
-                logger.debug(f'  --wait.until visibility_of_element_located((By.TAG_NAME,"body"))')
-                wait.until(EC.visibility_of_element_located((By.TAG_NAME,'body')))
-                time.sleep(1)
-                logger.info(f'  - SUCCESS: {link}')
-            except Exception as e:
-                logger.warn(f'  - FAIL(SKIP): {link}')
-                # ------------------------------
-                logger.debug(f'  -- exception: {self.exception_message(e)}')
-                not_visited.append(link)
-        logger.debug(f'  -- アクセス結果: Total={total_count}, NG={len(not_visited)}')
-        appdict.data['ptlinks'][name][sitename] = not_visited
+        not_visited = []
+        try:
+            logger.debug(f'   - {sitename}: ログインページにアクセス')
+            # ------------------------------
+            site.pilot_login(user)
 
-        logger.info(f' {sitename}からログアウト')
-        site.pilot_logout(user)
-        driver.switch_to.window(driver.window_handles[0])
+            logger.info(' ポイントURLに順次アクセス')
+            # ------------------------------
+            for link in appdict.data['ptlinks'][name][sitename]:
+                total_count += 1
+                try:
+                    logger.debug(f' - ポイントURLアクセス({total_count}/{num_ptlinks})')
+                    # ------------------------------
+                    driver.get(link)
+                    logger.debug(f'  --wait.until visibility_of_element_located((By.TAG_NAME,"body"))')
+                    wait.until(EC.visibility_of_element_located((By.TAG_NAME,'body')))
+                    time.sleep(1)
+                    logger.info(f'  - SUCCESS: {link}')
+                except Exception as e:
+                    logger.warn(f'  - FAIL(SKIP): {link}')
+                    # ------------------------------
+                    logger.debug(f'  -- exception: {self.exception_message(e)}')
+                    not_visited.append(link)
+            logger.debug(f'  -- アクセス結果: Total={total_count}, NG={len(not_visited)}')
+            appdict.data['ptlinks'][name][sitename] = not_visited
+
+            logger.info(f' {sitename}からログアウト')
+            site.pilot_logout(user)
+        except Exception as e:
+            logger.warn(f'  -- exception: {self.exception_message(e)}')
+            logger.warn(f'    -- all links remains as NOT VISITED. [{len(appdict.data["ptlinks"][name][sitename])}]')
+            pass
+        finally:
+            driver.switch_to.window(driver.window_handles[0])
 
         logger.debug(f' @@pilot_internal_visit:END[{sitename}]')
         return [total_count - len(not_visited), len(not_visited)]
@@ -276,6 +281,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         if self.appdict.data.get('log') is None:
             self.appdict.data['log'] = {}
         self.appdict.data['log'][user['name']] = []
+        wait.until(EC.visibility_of_element_located((By.ID, "menu_mail_inbox_unread")))
         wait.until(EC.element_to_be_clickable((By.ID, "menu_mail_inbox_unread")))
         driver.find_element_by_id("menu_mail_inbox_unread").click()
         mail_table = driver.find_element_by_id(r"mail_list_tbody")
@@ -386,7 +392,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         for i in self.appdict.data['sites']:
             cnt_OK, cnt_NG = self.pilot_internal_visit(user['name'], i[0], i[1])
             sum_OK += cnt_OK
-            sum_NG += sum_NG
+            sum_NG += cnt_NG
         self.appdict.data['log'][user['name']].append(f'Visited: o={sum_OK} / x={sum_NG}')
 
         logger.info(f'アクセスできなかったURLを一時保存(次回処理)')
@@ -411,6 +417,8 @@ if __name__ == "__main__":
     except Exception as e:
         App.logger.critical(f'!!{App.exception_message(e)}')
         if App.driver:
+            wk = str(App.appdict.wkfile("-HC",".png"))
+            App.driver.save_screenshot(wk)
             App.driver.quit()
     finally:
         # App.pilot_result.sort(key=itemgetter(0))
