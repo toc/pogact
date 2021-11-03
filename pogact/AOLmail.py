@@ -153,6 +153,7 @@ class AOLmail(AOLbase):
         self.appdict.data['log'] = {}
         self.appdict.data['log'][user['name']] = []
 
+        mail_unread, mail_havelink = (0,0)
         while True:
             logger.debug('受信箱に移動')
             # ------------------------------
@@ -182,6 +183,7 @@ class AOLmail(AOLbase):
                     logger.debug(f'  -- This mail is already read.  SKIP.')
                     continue
                 ### unread mail is found.  go into the message.
+                mail_unread += 1
                 msg.click()
                 pageobj = (By.CSS_SELECTOR,".subject")
                 logger.debug(f'-- WAIT:visibility_of_element_located({pageobj})')
@@ -195,9 +197,11 @@ class AOLmail(AOLbase):
                 links = []
                 soup = BeautifulSoup(driver.page_source,"lxml")
                 lists = soup.select("a")
-                regex = re.compile(r'^https://ecnavi.jp/m/go/\S+$', re.A)
+                # URL末尾に / および 半角SPC がつくときがある。
+                regex = re.compile(r'^https://ecnavi.jp/m/go/\S+/?\s*$', re.A)
                 for l in lists:
                     wk = l.get("href")
+                    # logger.debug(f'  >>{wk}<<')
                     if regex.match(wk):
                         links.append(wk)
                         logger.debug(f'--FOUND:a href={wk}')
@@ -206,15 +210,26 @@ class AOLmail(AOLbase):
                 pageobj = (By.TAG_NAME,"body")
                 logger.debug(f'-- WAIT:visibility_of_element_located({pageobj})')
                 wait.until(EC.visibility_of_element_located(pageobj))
-                wk_key = Keys.DELETE if len(links) > 0 else "x"
+                if len(links) > 0:
+                    # have link: delete mail
+                    logger.debug(f'-- Found link(s) [{len(links)}].')
+                    wk_key = Keys.DELETE
+                    mail_havelink += 1
+                else:
+                    # have link: skip mail
+                    logger.debug(f'-- No links.  SKIP!')
+                    wk_key = "x"
                 driver.find_element(*pageobj).send_keys(wk_key)
                 break               # End loop: for
 
             if row_count == 0:
                 # 最終メールまで処理済み→終了
                 wk = ['ECnavi']
-                wk.append(self.appdict.data['ptlinks'][user['name']]['ECnavi'])
-                self.appdict.data['log'][user['name']].extend(wk)
+                wk2 = f'New[{mail_unread}]->[{mail_havelink}, SKIP:{mail_unread - mail_havelink}]'
+                logger.debug(f'  - {wk2}')
+                wk.append([wk2])
+                wk.append( self.appdict.data['ptlinks'][user['name']]['ECnavi'] )
+                self.appdict.data['log'][user['name']].append(wk)
                 break               # End loop: while
 
         logger.info('抽出したポイント付きURLを訪問')
@@ -224,8 +239,8 @@ class AOLmail(AOLbase):
         for i in self.appdict.data['sites']:
             cnt_OK, cnt_NG = self.pilot_internal_visit(user['name'], i[0], i[1])
             sum_OK += cnt_OK
-            sum_NG += sum_NG
-        self.appdict.data['log'][user['name']].append(f'Visited URLs OK={sum_OK} / NG={sum_NG}')
+            sum_NG += cnt_NG
+        self.appdict.data['log'][user['name']].append(f'Visited: o={sum_OK} / x={sum_NG}')
 
         # logger.info(f'アクセスできなかったURLを一時保存(次回処理)')
         # # ==============================
@@ -236,7 +251,9 @@ class AOLmail(AOLbase):
         #     yaml.dump(self.appdict.data['ptlinks'], f, default_flow_style=False, allow_unicode=True)
         # self.appdict.data['log'][user['name']].append(f'Save not-visited URLs. {sum_NG} link(s).')
 
-        self.pilot_result.append([user['name'],self.appdict.data['log'][user['name']]])
+        if (sum_OK,sum_NG) != (0,0):
+            # Report result.
+            self.pilot_result.append([user['name'],self.appdict.data['log'][user['name']]])
         logger.debug('@@pilot_internal: END')
 
 
