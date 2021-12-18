@@ -248,7 +248,9 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         logger = self.logger
 
         logger.debug('  - 楽天Mail de pointを想定してメール本文を解析')
-        # ------------------------------
+        # -----------------------------------------------------------
+        logger.debug('    - イメージリンクボタンをチェック')
+        # ================================================
         soup = BeautifulSoup(driver.page_source,"lxml")
         lists = soup.select("a img")        # a内に子タグとしてimgが存在するものを抽出
         links = []
@@ -262,8 +264,21 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
                 "https://edy.rakuten.co.jp/htmlmail/ad/images/btn_get.gif",
                 ):
                 links.append(l.parent.get("href"))
-                logger.debug(f'--FOUND:img src={wk}')
-                logger.debug(f'--STORED href={l.parent.get("href")}')
+                logger.debug(f'      --FOUND:img src={wk}')
+                logger.debug(f'      --STORED href={l.parent.get("href")}')
+        logger.debug(f'    -> num links is [{len(links)}]')
+
+        logger.debug('    - テキストリンクをチェック')
+        # ==========================================
+        link_regex = r'https://pg.rakuten.co.jp/act\?.*'
+        regex = re.compile(link_regex)
+        logger.debug(f'   -- Compare with >{link_regex}<')
+        lists = soup.find_all("a", string=regex)        # filter by link text
+        for l in lists:
+            wk = l.string
+            if wk is not None:
+                links.append(wk)
+                logger.debug(f'   --STORED href={wk}')
 
         # URLリストを返却、空リストなら対象なし(楽天メール外？)
         logger.debug(f'    解析終了: 該当URL数[{len(links)}]')
