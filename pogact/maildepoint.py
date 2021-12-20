@@ -45,16 +45,19 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
         wait = self.wait
         logger = self.logger
         results = []
+        re_leading_number = r'^(\d+)'
 
         try:
             logger.debug(f"  - Move to top page of mail_de_point")
             # ------------------------------
             driver.get("https://member.pointmail.rakuten.co.jp/box")
             logger.debug(f'  wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"#mailContents > div.leftCol > dl > dd.pointNotGetCount")))')
-            wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"#mailContents > div.leftCol > dl > dd.pointNotGetCount")))
-            before_txt = driver.find_element_by_css_selector('#mailContents > div.leftCol > dl > dd.pointNotGetCount').text
-            num_notget = int(before_txt)
-            before_txt += '/' + driver.find_element_by_css_selector('#mailContents > div.leftCol > dl > dd.preGrantPoint').text
+            wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,".pointNotGetCount")))
+            before_txt = driver.find_element_by_css_selector('.pointNotGetCount').text
+            wk = re.match(re_leading_number,before_txt)
+            if wk:
+                num_notget = int(wk.group(1))
+            before_txt += '/' + driver.find_element_by_css_selector('.preGrantPoint').text
             logger.debug(f"  -- Grant staus before: {before_txt}.")
 
             logger.debug(f"  - Switch to メールボックス")
@@ -130,8 +133,8 @@ class MailDePoint(RPAbase.RakutenBase.RakutenBase):
                         logger.debug(f"  -- 次ページボタン無効＝最終ページ処理完了.")
                         # ------------------------------
                         break
-            after_txt = driver.find_element_by_css_selector('#mailContents > div.leftCol > dl > dd.pointNotGetCount').text
-            after_txt += '/' + driver.find_element_by_css_selector('#mailContents > div.leftCol > dl > dd.preGrantPoint').text
+            after_txt = driver.find_element_by_css_selector('.pointNotGetCount').text
+            after_txt += '/' + driver.find_element_by_css_selector('.preGrantPoint').text
             logger.debug(f"  -- Grant staus after: {after_txt}.")
 
         except Exception as e:
