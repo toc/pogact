@@ -126,130 +126,141 @@ class AOLmail(AOLbase):
         wait = self.wait
         logger = self.logger
 
-        # setup MIX-in modules.
-        #TODO: 名前からインスタンス化できればスッキリ書けそう！
-        self.appdict.data['sites'] = []
-        ### Moppy
-        wk = RPAbase.ECnaviBase.ECnaviBase()
-        wk.silent_setup(driver, wait, self.logger)
-        self.appdict.data['sites'].append(['ECnavi',wk])
+        try:
+            # setup MIX-in modules.
+            #TODO: 名前からインスタンス化できればスッキリ書けそう！
+            self.appdict.data['sites'] = []
+            ### Moppy
+            wk = RPAbase.ECnaviBase.ECnaviBase()
+            wk.silent_setup(driver, wait, self.logger)
+            self.appdict.data['sites'].append(['ECnavi',wk])
 
 
-        logger.info('-- driver.get("https://mail.aol.com/webmail-std/ja-jp/suite")')
-        driver.get("https://mail.aol.com/webmail-std/ja-jp/suite")
+            logger.info('-- driver.get("https://mail.aol.com/webmail-std/ja-jp/suite")')
+            driver.get("https://mail.aol.com/webmail-std/ja-jp/suite")
 
-        logger.debug('受信箱に移動')
-        # ------------------------------
-        pageobj = (By.ID, "inboxNode")
-        # logger.debug(f'-- WAIT:visibility_of_element_located({pageobj})')
-        # wait.until(EC.visibility_of_element_located(pageobj))
-        logger.debug(f'-- WAIT:element_to_be_clickable({pageobj})')
-        wait.until(EC.element_to_be_clickable(pageobj))
-        driver.find_element(*pageobj).click()
-
-        self.appdict.data['ptlinks'] = {}
-        self.appdict.data['ptlinks'][user['name']] = {}
-        self.appdict.data['ptlinks'][user['name']]['ECnavi'] = []
-        self.appdict.data['log'] = {}
-        self.appdict.data['log'][user['name']] = []
-
-        mail_unread, mail_havelink = (0,0)
-        while True:
             logger.debug('受信箱に移動')
             # ------------------------------
-            # wait until message list is displayed.
-            pageobj = (By.CSS_SELECTOR,"th.dojoxGrid-cell:nth-child(3)")
-            logger.debug(f'-- WAIT:visibility_of_element_located({pageobj})')
-            wait.until(EC.visibility_of_element_located(pageobj))
-            # fetch message list.
-            pageobj=(By.CSS_SELECTOR,".dojoxGrid-content")
-            content = driver.find_element(*pageobj)
-            rows = content.find_elements(By.XPATH,"div/div")
-            row_count = len(rows)
-            logger.debug(f'  -- rows:{row_count}')
+            pageobj = (By.ID, "inboxNode")
+            # logger.debug(f'-- WAIT:visibility_of_element_located({pageobj})')
+            # wait.until(EC.visibility_of_element_located(pageobj))
+            logger.debug(f'-- WAIT:element_to_be_clickable({pageobj})')
+            wait.until(EC.element_to_be_clickable(pageobj))
+            driver.find_element(*pageobj).click()
 
-            for row in rows:
-                row_count -= 1
-                logger.debug('  メールごとの処理')
+            self.appdict.data['ptlinks'] = {}
+            self.appdict.data['ptlinks'][user['name']] = {}
+            self.appdict.data['ptlinks'][user['name']]['ECnavi'] = []
+            self.appdict.data['log'] = {}
+            self.appdict.data['log'][user['name']] = []
+
+            mail_unread, mail_havelink = (0,0)
+            while True:
+                logger.debug('受信箱に移動')
                 # ------------------------------
-                ### get subject
-                pageobj = (By.XPATH,"table/tbody/tr/td[4]")
-                msg = row.find_element(*pageobj)
-                subject = msg.text
-                logger.debug(f'  -- subject[{subject}]')
-                ### already READ?
-                wk = row.get_attribute('class').split()
-                if 'row-read' in wk:
-                    logger.debug(f'  -- This mail is already read.  SKIP.')
-                    continue
-                ### unread mail is found.  go into the message.
-                mail_unread += 1
-                msg.click()
-                pageobj = (By.CSS_SELECTOR,".subject")
+                # wait until message list is displayed.
+                pageobj = (By.CSS_SELECTOR,"th.dojoxGrid-cell:nth-child(3)")
                 logger.debug(f'-- WAIT:visibility_of_element_located({pageobj})')
                 wait.until(EC.visibility_of_element_located(pageobj))
-                wk = driver.find_element(*pageobj)
-                wk2 = wk.text
-                logger.debug(f'  -- subject[{wk2}]')
-                if wk2 != subject[:len(wk2)]:
-                    raise Exception('Subjectが違います')
-                ### Fetch URLs in the message.
-                links = []
-                soup = BeautifulSoup(driver.page_source,"lxml")
-                lists = soup.select("a")
-                # URL末尾に / および 半角SPC がつくときがある。
-                regex = re.compile(r'^https://ecnavi.jp/m/go/\S+/?\s*$', re.A)
-                for l in lists:
-                    wk = l.get("href")
-                    # logger.debug(f'  >>{wk}<<')
-                    if regex.match(wk):
-                        links.append(wk)
-                        logger.debug(f'--FOUND:a href={wk}')
-                self.appdict.data['ptlinks'][user['name']]['ECnavi'].extend(links)
-                ### mail analisys is completed.  back to mail list.
-                pageobj = (By.TAG_NAME,"body")
-                logger.debug(f'-- WAIT:visibility_of_element_located({pageobj})')
-                wait.until(EC.visibility_of_element_located(pageobj))
-                if len(links) > 0:
-                    # have link: delete mail
-                    logger.debug(f'-- Found link(s) [{len(links)}].')
-                    wk_key = Keys.DELETE
-                    mail_havelink += 1
-                else:
-                    # have link: skip mail
-                    logger.debug(f'-- No links.  SKIP!')
-                    wk_key = "x"
-                driver.find_element(*pageobj).send_keys(wk_key)
-                break               # End loop: for
+                # fetch message list.
+                pageobj=(By.CSS_SELECTOR,".dojoxGrid-content")
+                content = driver.find_element(*pageobj)
+                rows = content.find_elements(By.XPATH,"div/div")
+                row_count = len(rows)
+                logger.debug(f'  -- rows:{row_count}')
 
-            if row_count == 0:
-                # 最終メールまで処理済み→終了
-                wk = ['ECnavi']
-                wk2 = f'New[{mail_unread}]->[{mail_havelink}, SKIP:{mail_unread - mail_havelink}]'
-                logger.debug(f'  - {wk2}')
-                wk.append([wk2])
-                wk.append( self.appdict.data['ptlinks'][user['name']]['ECnavi'] )
-                self.appdict.data['log'][user['name']].append(wk)
-                break               # End loop: while
+                for row in rows:
+                    row_count -= 1
+                    logger.debug('  メールごとの処理')
+                    # ------------------------------
+                    ### get subject
+                    pageobj = (By.XPATH,"table/tbody/tr/td[4]")
+                    msg = row.find_element(*pageobj)
+                    subject = msg.text
+                    logger.debug(f'  -- subject[{subject}]')
+                    ### already READ?
+                    wk = row.get_attribute('class').split()
+                    if 'row-read' in wk:
+                        logger.debug(f'  -- This mail is already read.  SKIP.')
+                        continue
+                    ### unread mail is found.  go into the message.
+                    mail_unread += 1
+                    msg.click()
+                    pageobj = (By.CSS_SELECTOR,".subject")
+                    logger.debug(f'-- WAIT:visibility_of_element_located({pageobj})')
+                    wait.until(EC.visibility_of_element_located(pageobj))
+                    wk = driver.find_element(*pageobj)
+                    wk2 = wk.text
+                    logger.debug(f'  -- subject[{wk2}]')
+                    if wk2 != subject[:len(wk2)]:
+                        raise Exception('Subjectが違います')
+                    ### Fetch URLs in the message.
+                    links = []
+                    soup = BeautifulSoup(driver.page_source,"lxml")
+                    lists = soup.select("a")
+                    # URL末尾に / および 半角SPC がつくときがある。
+                    regex = re.compile(r'^https://ecnavi.jp/m/go/\S+/?\s*$', re.A)
+                    for l in lists:
+                        wk = l.get("href")
+                        # logger.debug(f'  >>{wk}<<')
+                        if regex.match(wk):
+                            links.append(wk)
+                            logger.debug(f'--FOUND:a href={wk}')
+                    self.appdict.data['ptlinks'][user['name']]['ECnavi'].extend(links)
+                    ### mail analisys is completed.  back to mail list.
+                    pageobj = (By.TAG_NAME,"body")
+                    logger.debug(f'-- WAIT:visibility_of_element_located({pageobj})')
+                    wait.until(EC.visibility_of_element_located(pageobj))
+                    if len(links) > 0:
+                        # have link: delete mail
+                        logger.debug(f'-- Found link(s) [{len(links)}].')
+                        wk_key = Keys.DELETE
+                        mail_havelink += 1
+                    else:
+                        # have link: skip mail
+                        logger.debug(f'-- No links.  SKIP!')
+                        wk_key = "x"
+                    driver.find_element(*pageobj).send_keys(wk_key)
+                    break               # End loop: for
 
-        logger.info('抽出したポイント付きURLを訪問')
-        # ==============================
-        # メール一覧に対象がなくても一時保存URLが残っていれば処理が必要。
-        cnt_OK, cnt_NG, sum_OK, sum_NG = [0, 0, 0, 0]
-        for i in self.appdict.data['sites']:
-            cnt_OK, cnt_NG = self.pilot_internal_visit(user['name'], i[0], i[1])
-            sum_OK += cnt_OK
-            sum_NG += cnt_NG
-        self.appdict.data['log'][user['name']].append(f'Visited: o={sum_OK} / x={sum_NG}')
+                if row_count == 0:
+                    # 最終メールまで処理済み→終了
+                    wk = ['ECnavi']
+                    wk2 = f'New[{mail_unread}]->[{mail_havelink}, SKIP:{mail_unread - mail_havelink}]'
+                    logger.debug(f'  - {wk2}')
+                    wk.append([wk2])
+                    wk.append( self.appdict.data['ptlinks'][user['name']]['ECnavi'] )
+                    self.appdict.data['log'][user['name']].append(wk)
+                    break               # End loop: while
+        except Exception as e:
+            logger.error(f'Caught exception while analyzing mails: {self.exception_message(e)}')
+            logger.error(f'Raise exception and exit!')
+            raise(e)
 
-        # logger.info(f'アクセスできなかったURLを一時保存(次回処理)')
-        # # ==============================
-        # logger.debug(f'- 一時保留URL={sum_NG}')
-        # fname = str(self.appdict.name).lower()
-        # with open(f'{fname}_remain.yaml', 'w', encoding='utf-8') as f:
-        #     #TODO: last_done.yamlで手当できないか？
-        #     yaml.dump(self.appdict.data['ptlinks'], f, default_flow_style=False, allow_unicode=True)
-        # self.appdict.data['log'][user['name']].append(f'Save not-visited URLs. {sum_NG} link(s).')
+        try:
+            logger.info('抽出したポイント付きURLを訪問')
+            # ==============================
+            # メール一覧に対象がなくても一時保存URLが残っていれば処理が必要。
+            cnt_OK, cnt_NG, sum_OK, sum_NG = [0, 0, 0, 0]
+            for i in self.appdict.data['sites']:
+                cnt_OK, cnt_NG = self.pilot_internal_visit(user['name'], i[0], i[1])
+                sum_OK += cnt_OK
+                sum_NG += cnt_NG
+            self.appdict.data['log'][user['name']].append(f'Visited: o={sum_OK} / x={sum_NG}')
+
+            # logger.info(f'アクセスできなかったURLを一時保存(次回処理)')
+            # # ==============================
+            # logger.debug(f'- 一時保留URL={sum_NG}')
+            # fname = str(self.appdict.name).lower()
+            # with open(f'{fname}_remain.yaml', 'w', encoding='utf-8') as f:
+            #     #TODO: last_done.yamlで手当できないか？
+            #     yaml.dump(self.appdict.data['ptlinks'], f, default_flow_style=False, allow_unicode=True)
+            # self.appdict.data['log'][user['name']].append(f'Save not-visited URLs. {sum_NG} link(s).')
+        except Exception as e:
+            logger.error(f'Caught exception while visiting URLs: {self.exception_message(e)}')
+            logger.error(f'Raise exception and exit!')
+            raise(e)
+
 
         if (sum_OK,sum_NG) != (0,0):
             # Report result.
