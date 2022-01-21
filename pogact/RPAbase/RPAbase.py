@@ -49,6 +49,11 @@ class RPAbase():
         1. Update webdriver, if needed.
         1. Prepare logger, work file/folder, and so on.
         """
+        # today
+        now = datetime.datetime.now()
+        self.appdict.data['now'] = now
+        self.appdict.data['today'] = now.replace(hour=0,minute=0,second=0,microsecond=0)
+        self.appdict.data['need_report'] = 0
         # logger
         self.logger = Logger(self.appdict.name, clevel=DEBUG if __debug__ else INFO, flevel=DEBUG)
         logger = self.logger
@@ -185,6 +190,16 @@ class RPAbase():
             self.driver.quit()
         self.logger.debug(self.pilot_result)
 
+    def save_current_html(self,substr='wk',suffix='tmp'):
+        # save current html
+        fname = self.appdict.wkfile(substr,suffix)
+        try:
+            with open(fname, 'w', encoding=r'utf-8') as f:
+                f.write(self.driver.page_source)
+        except Exception as e:
+            self.logger.error(f'!! Cannot save current page_source')
+            self.logger.error(self.exception_message(e))
+
     def is_element_present(self, how, what):
         try: self.driver.find_element(by=how, value=what)
         except NoSuchElementException: return False
@@ -207,10 +222,9 @@ class RPAbase():
         finally: self.accept_next_alert = True
     
     def assertEqual(self, a, b):
-        if a == b:
-            pass
-        else:
+        if a != b:
             raise AssertionError(f"Unexpected result: >{b}<")
+        return True
 
     def exception_message(self, e):
         return f'Caught Exception: {type(e)} {e.args if hasattr(e,"args") else str(e)}'
