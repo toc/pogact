@@ -175,7 +175,7 @@ class MineoPhone(RPAbase.MineoBase.MineoBase):
                     logger.debug(f'  - wait for visibility_of_element_located((By.ID,"pdfDownload"))')
                     wait.until(EC.element_to_be_clickable((By.ID,"pdfDownload")))
                     driver.find_element_by_id("pdfDownload").click()
-                    time.sleep(8)           # ダウンロード完了待ち
+                    time.sleep(12)           # ダウンロード完了待ち
                     filepath = self.getLatestDownloadedFileName()
                     if filepath is not None:
                         fp_org = Path(filepath)
