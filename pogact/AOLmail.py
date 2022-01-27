@@ -277,8 +277,6 @@ if __name__ == "__main__":
         # ブラウザ操作
         # -- Webdriverの準備からquitまで実施する
         rpa.pilot()
-        # ブラウザの後始末
-        rpa.tearDown()
     except Exception as e:
         rpa.pilot_result.insert(0,rpa.exception_message(e))
     finally:
@@ -289,3 +287,5 @@ if __name__ == "__main__":
                 pprint.pformat(result, width=45)
             )
             pprint.pprint(result, width=45)
+        # ブラウザの後始末
+        rpa.tearDown()

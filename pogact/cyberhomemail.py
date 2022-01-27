@@ -50,7 +50,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         except Exception as e:
             self.logger.error(f' Caught Ex(Ignore): Reviving previous remain list: {self.exception_message(e)}')
             self.appdict.data['ptlinks'] = {}
-
+        
 
     def pilot_setup(self):
         """
@@ -285,25 +285,41 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         return links
 
 
+    def open_url_tree(self, user):
+        ptlinks = self.appdict.data['ptlinks'][user['name']]
+        # print([x for x in ptlinks])
+        num_ptlinks = [len(ptlinks[x]) for x in ptlinks]
+        # print(num_ptlinks)
+        return num_ptlinks
+
+
     def pilot_internal(self, user):
         driver = self.driver
         wait = self.wait
         logger = self.logger
         logger.debug('@@pilot_internal:START')
 
-        logger.info('Cyberhome未読メール: 解析開始')
+        logger.info('初期化')
         # ==============================
         if self.appdict.data.get('log') is None:
             self.appdict.data['log'] = {}
         self.appdict.data['log'][user['name']] = []
+        #
+        ptlinks = self.appdict.data['ptlinks'].get(user['name'],{})
+        self.appdict.data['ptlinks'][user['name']] = ptlinks       # write back
+        # print([x for x in ptlinks])
+        num_ptlinks = self.open_url_tree(user)
+        # print(num_ptlinks)
+        self.appdict.data['log'][user['name']].append(f'Not visited before: [{sum(num_ptlinks)}]')
+        logger.info('Cyberhome未読メール: 解析開始')
+        # ==============================
         wait.until(EC.visibility_of_element_located((By.ID, "menu_mail_inbox_unread")))
         wait.until(EC.element_to_be_clickable((By.ID, "menu_mail_inbox_unread")))
         driver.find_element_by_id("menu_mail_inbox_unread").click()
         mail_table = driver.find_element_by_id(r"mail_list_tbody")
         mails = mail_table.find_elements_by_tag_name(r"tr")
+        #
         self.appdict.data['log'][user['name']].append(f'Mails: {len(mails)}')
-
-        ptlinks = self.appdict.data['ptlinks'].get(user['name'],{})
         found_mail = []
         found_link = []
         for mail in mails:
@@ -410,6 +426,9 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
             sum_NG += cnt_NG
         self.appdict.data['log'][user['name']].append(f'Visited: o={sum_OK} / x={sum_NG}')
 
+        num_ptlinks = self.open_url_tree(user)
+        self.appdict.data['log'][user['name']].append(f'Cannot visit: {sum(num_ptlinks)}.')
+
         logger.info(f'アクセスできなかったURLを一時保存(次回処理)')
         # ==============================
         logger.debug(f'- 一時保留URL={sum_NG}')
@@ -417,7 +436,6 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         with open(f'{fname}_remain.yaml', 'w', encoding='utf-8') as f:
             #TODO: last_done.yamlで手当できないか？
             yaml.dump(self.appdict.data['ptlinks'], f, default_flow_style=False, allow_unicode=True)
-        self.appdict.data['log'][user['name']].append(f'Non-visited: {sum_NG} link(s).')
 
         self.pilot_result.append([user['name'],self.appdict.data['log'][user['name']]])
         logger.debug('@@pilot_internal: END')
