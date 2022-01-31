@@ -1,3 +1,4 @@
+from os import truncate
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -41,8 +42,38 @@ class AOLbase(RPAbase.RPAbaseRecapture.RPAbaseRecapture):
 
 
     def pilot_logout(self, account):
-        # Do nothing
-        return True
+        """ AOLからログアウト """
+        driver = self.driver
+        wait = self.wait
+        logger = self.logger
+        result = False
+
+        pageobj = (By.LINK_TEXT, "サインオフ")
+        if self.is_element_present(*pageobj) is False:
+            logger.debug(f'-- driver.get("https://www.aol.jp/https://mail.aol.com/webmail-std/ja-jp/suite")')
+            driver.get("https://mail.aol.com/webmail-std/ja-jp/suite")
+
+        try:
+            logger.info('-- Try to log-out.')
+            logger.debug(f'-- wait for [{pageobj}]')
+            wait.until(EC.visibility_of_element_located(pageobj))
+            driver.find_element(*pageobj).click()
+
+            pageobj = (By.TAG_NAME, 'body')
+            logger.debug(f'-- wait for [{pageobj}]')
+            wait.until(EC.visibility_of_element_located(pageobj))
+            # driver.find_element(*pageobj).click()
+
+            pageobj = (By.PARTIAL_LINK_TEXT, 'サインイン')
+            logger.debug(f'-- wait for [{pageobj}]')
+            wait.until(EC.visibility_of_element_located(pageobj))
+
+            result = True
+
+        except Exception as e:
+            logger.error(self.exception_message(e))
+
+        return result
 
     def pilot(self):
         # driver, wait = self.pilot_setup()
