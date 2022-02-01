@@ -36,18 +36,30 @@ class RBankBase(RPAbase.RPAUserService.RPAUserService):
 
         return self.is_element_present(By.LINK_TEXT, u"ログアウト")
 
+
     def pilot_logout(self, account):
         driver = self.driver
         logger = self.logger
         wait = self.wait
-
-        driver.get("https://fes.rakuten-bank.co.jp/MS/main/gns?COMMAND=LOGOUT_CONFIRM_START&&CurrentPageID=HEADER_FOOTER_LINK")
-        # wait.until(EC.visibility_of_element_located((By.ID, 'headArea')))
-        # pageobj = (By.CSS_SELECTOR,'#LOGOUT_COMFIRM\:_idJsp19')
+        #
+        logger.info( f'  楽天銀行からログアウト')
+        # ==============================
+        logger.debug(f'  - 移動: 商品･サービス一覧')
+        po = (By.LINK_TEXT,'商品･サービス一覧')
+        wait.until(EC.element_to_be_clickable(po))
+        driver.find_element(*po).click()
+        # ------------------------------
+        logger.debug(f'  - ボタン押下: ログアウト')
+        pageobj = (By.LINK_TEXT,'ログアウト')
+        logger.debug(f'  wait for {pageobj}')
+        wait.until(EC.visibility_of_element_located(pageobj))
+        driver.find_element(*pageobj).click()
+        # ------------------------------
+        logger.debug(f'  - 継続確認: ログアウト')
         pageobj = (By.CSS_SELECTOR,'#LOGOUT_COMFIRM')            
         result = self.is_element_present(*pageobj)
         logger.debug(f'  wait for {pageobj}')
-        # logger.debug(f"  -- {pageobj} exists? {result}")
+        logger.debug(f"  -- {pageobj} exists? {result}")
         wait.until(EC.visibility_of_element_located(pageobj))
         driver.find_element(*pageobj).click()
         #
@@ -58,5 +70,6 @@ class RBankBase(RPAbase.RPAUserService.RPAUserService):
         wk = driver.find_element(*pageobj).text
         result = True if re.match('ログアウトしました。', wk) else False
         logger.debug(f'  [{result}]: >{wk.split()[0]}<')
+        #
         return result
 
