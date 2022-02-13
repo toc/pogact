@@ -23,6 +23,7 @@ class SBISecReport(SBISec):
             r'SBISec_invest_by_point', 'SBI_user', __file__,
             r'0.1', r'$Rev$', r'Alpha'
         )
+        self.result = []
 
     def prepare(self):
         super().prepare('SBI証券: Point投資')
@@ -58,7 +59,9 @@ class SBISecReport(SBISec):
         logger.debug(f'  Compare weeknum: curr[{now_weeknum}] vs prev[{ld_weeknum}]')
         if now_weeknum <= ld_weeknum:
             # 現在月が最終実行月以前であれば実行不要
-            logger.warn(f' Already executed at [{last_done}].  EXIT !')
+            resmsg = f' Already executed at [{last_done}].  EXIT !'
+            logger.warn(resmsg)
+            self.result.append(resmsg)
             result = False
         return result
 
@@ -71,84 +74,99 @@ class SBISecReport(SBISec):
         logger.info( f'  実行前チェック')
         # ==============================
         execflag = self.need_execute(account)
-        if execflag is not True: return
-        #
-        logger.info( f'  投信へ移動')
-        # ==============================
-        driver.get("https://site1.sbisec.co.jp/ETGate/")
-        po = (By.TAG_NAME,'body')
-        logger.debug(f'  wait for {po}')
-        wait.until(EC.visibility_of_element_located(po))
-        y = stage_name('_test')
-        self.save_current_html('0','html')
-        # ------------------------------
-        po = (By.XPATH,"//img[@alt='投信・外貨建MMF']")
-        driver.find_element(*po).click()
-        #
-        logger.info( f'  ファンド検索')
-        # ==============================
-        logger.debug(f'  - ファンド絞り込み')
-        po = (By.ID,'fundSearch')
-        logger.debug(f'  wait for {po}')
-        wait.until(EC.visibility_of_element_located(po))
-        self.save_current_html('1','html')
-        driver.find_element(*po).clear()
-        driver.find_element(*po).send_keys(u"ＳＢＩ・V")
-        po = (By.NAME,'ACT_clickToSearchFund')
-        driver.find_element(*po).click()
-        logger.debug(f'  - ファンド詳細画面へ遷移')
-        po = (By.ID,account['fund'])          #TODO:
-        logger.debug(f'  wait for {po}')
-        wait.until(EC.visibility_of_element_located(po))
-        fund = driver.find_element(*po)
-        fundname = fund.text
-        fund.click()
-        #
-        logger.info( f'  購入手続き')   
-        # ==============================
-        po = (By.LINK_TEXT,'金額買付')          #TODO:
-        logger.debug(f'  wait for {po}')
-        wait.until(EC.visibility_of_element_located(po))
-        self.save_current_html('2','html')
-        driver.find_element(*po).click()
-        # ------------------------------
-        po = (By.NAME,'payment')          #TODO:
-        logger.debug(f'  wait for {po}')
-        wait.until(EC.visibility_of_element_located(po))
-        self.save_current_html('3','html')
-        amount_of_invest = account['amount']                  # TODO:
-        payment = driver.find_element(*po)
-        payment.clear()
-        payment.send_keys(str(amount_of_invest))
-        #
-        po = (By.XPATH,'//*[@id="MAINAREA02_780"]/form/table[2]/tbody/tr[2]/td/table/tbody/tr[1]')          #TODO:
-        pnt_before = driver.find_element(*po).text
-        #
-        po = (By.ID,'zenbushiyou')          #TODO:
-        driver.find_element(*po).click()
-        #
-        po = (By.ID,'pwd3')          #TODO:
-        deal_pw = driver.find_element(*po)
-        deal_pw.clear()
-        deal_pw.send_keys(account['pwd3'])
-        #
-        po = (By.XPATH,"//img[@alt='注文確認画面へ']")          #TODO:
-        driver.find_element(*po).click()
-        #
-        logger.info( f'  購入申請内容確認')
-        # ==============================
-        #TODO:
-        self.save_current_html(stage_name('4'),'html')
-        # result = self.assertEqual(result_msg,'以下の内容でエントリーを受け付けました。')
-        wk = self.appdict.wkfile(stage_name('_4-order'), "png")
-        driver.save_screenshot(str(wk))
-        # ------------------------------
-        #TODO:
-        po = (By.XPATH,"//img[@alt='注文発注']")          #TODO:
-        driver.find_element(*po).click()
-        self.save_current_html(stage_name('5'),'html')
-        wk = self.appdict.wkfile(stage_name('5-order'), "png")
-        driver.save_screenshot(str(wk))
+        if execflag is True:
+            #
+            logger.info( f'  投信へ移動')
+            # ==============================
+            driver.get("https://site1.sbisec.co.jp/ETGate/")
+            po = (By.TAG_NAME,'body')
+            logger.debug(f'  wait for {po}')
+            wait.until(EC.visibility_of_element_located(po))
+            y = stage_name('_test')
+            self.save_current_html('0','html')
+            # ------------------------------
+            po = (By.XPATH,"//img[@alt='投信・外貨建MMF']")
+            driver.find_element(*po).click()
+            #
+            logger.info( f'  ファンド検索')
+            # ==============================
+            logger.debug(f'  - ファンド絞り込み')
+            po = (By.ID,'fundSearch')
+            logger.debug(f'  wait for {po}')
+            wait.until(EC.visibility_of_element_located(po))
+            self.save_current_html('1','html')
+            driver.find_element(*po).clear()
+            driver.find_element(*po).send_keys(u"ＳＢＩ・V")
+            po = (By.NAME,'ACT_clickToSearchFund')
+            driver.find_element(*po).click()
+            logger.debug(f'  - ファンド詳細画面へ遷移')
+            po = (By.ID,account['fund'])          #TODO:
+            logger.debug(f'  wait for {po}')
+            wait.until(EC.visibility_of_element_located(po))
+            fund = driver.find_element(*po)
+            resmsg = f'fund: >{fund.text}<'
+            self.result.append(resmsg)
+            fund.click()
+            #
+            logger.info( f'  購入手続き')   
+            # ==============================
+            po = (By.LINK_TEXT,'金額買付')          #TODO:
+            logger.debug(f'  wait for {po}')
+            wait.until(EC.visibility_of_element_located(po))
+            self.save_current_html('2','html')
+            driver.find_element(*po).click()
+            # ------------------------------
+            po = (By.NAME,'payment')          #TODO:
+            logger.debug(f'  wait for {po}')
+            wait.until(EC.visibility_of_element_located(po))
+            self.save_current_html('3','html')
+            amount_of_invest = account['amount']                  # TODO:
+            payment = driver.find_element(*po)
+            payment.clear()
+            payment.send_keys(str(amount_of_invest))
+            #
+            po = (By.XPATH,'//*[@id="MAINAREA02_780"]/form/table[2]/tbody/tr[2]/td/table/tbody/tr[1]')          #TODO:
+            pnt_before = driver.find_element(*po).text
+            #
+            po = (By.ID,'zenbushiyou')          #TODO:
+            driver.find_element(*po).click()
+            #
+            po = (By.ID,'pwd3')          #TODO:
+            deal_pw = driver.find_element(*po)
+            deal_pw.clear()
+            deal_pw.send_keys(account['pwd3'])
+            #
+            po = (By.XPATH,"//img[@alt='注文確認画面へ']")          #TODO:
+            driver.find_element(*po).click()
+            #
+            logger.info( f'  購入申請内容確認')
+            # ==============================
+            #TODO:
+            self.save_current_html(stage_name('4'),'html')
+            # result = self.assertEqual(result_msg,'以下の内容でエントリーを受け付けました。')
+            wk = self.appdict.wkfile(stage_name('_4-order'), "png")
+            driver.save_screenshot(str(wk))
+            # ------------------------------
+            #TODO:
+            po = (By.XPATH,"//img[@alt='注文発注']")          #TODO:
+            driver.find_element(*po).click()
+            # -- 発注情報収集
+            po = (By.XPATH,'//*[@id="MAINAREA02_780"]/form/div[4]/table/tbody/tr[4]')
+            resmsg = f'fund: >{driver.fullscreen_window(*po).text}<'
+            self.result.append(resmsg)
+            po = (By.XPATH,'//*[@id="MAINAREA02_780"]/form/div[4]/table/tbody/tr[6]')
+            resmsg = f'fund: >{driver.fullscreen_window(*po).text}<'
+            self.result.append(resmsg)
+            po = (By.XPATH,'//*[@id="MAINAREA02_780"]/form/div[4]/table/tbody/tr[7]')
+            resmsg = f'fund: >{driver.fullscreen_window(*po).text}<'
+            self.result.append(resmsg)
+            #
+            self.save_current_html(stage_name('5'),'html')
+            wk = self.appdict.wkfile(stage_name('5-order'), "png")
+            driver.save_screenshot(str(wk))
+        else:
+            # すでに実行済み
+            pass
         #
         logger.debug(f'  - 後片付け')
         # ==============================
