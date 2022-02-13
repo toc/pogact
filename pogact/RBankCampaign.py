@@ -3,6 +3,7 @@ from datetime import datetime
 from inspect import FullArgSpec
 from os import truncate
 from sys import set_coroutine_origin_tracking_depth
+from turtle import title
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -72,42 +73,55 @@ class RBankCampaign(RBankBase):
         appdict = self.appdict
 
         logger.debug(f'  @@pilot_internal: START')
+        appdict.data['log'] = []
 
         logger.info( f'  実行前チェック')
         # ==============================
         # execflag = True
         # if hasattr(self,'need_execute'):
         execflag = self.need_execute(account)
-        if execflag is not True: return
+        if execflag is True:
+            #
+            logger.info( f'  キャンペーンページへ移動')
+            # ==============================
+            self.save_current_html('_0','html')
+            # ------------------------------
+            logger.debug( f'  - 商品･サービス一覧')
+            po = (By.LINK_TEXT,'商品･サービス一覧')
+            wait.until(EC.element_to_be_clickable(po))
+            driver.find_element(*po).click()
+            self.save_current_html('_1','html')
+            # ------------------------------
+            logger.debug( f'  - キャンペーン等')
+            po = (By.LINK_TEXT,'キャンペーン等')
+            wait.until(EC.element_to_be_clickable(po))
+            driver.find_element(*po).click()
+            self.save_current_html('_2','html')
+
+            logger.info( f'  キャンペーン一覧を処理')
+            # ==============================
+            num_items_tried = 0
+            max_items_tried = 3         # TODO: パラメータ化する
+            while self.pilot_internal1():
+                num_items_tried += 1
+                if num_items_tried >= max_items_tried:
+                    logger.info( f'  処理上限到達のためbreak')
+                    break
+            self.last_done[appdict.name][account['name']] = datetime.now()
+            wk = f'  応募完了したリンク数[{num_items_tried}]'
+            logger.info( wk)
+            appdict.data['log'].insert(0,wk)
+        else:
+            #
+            logger.info( f'  実行条件未成立')
+            # ==============================
+            appdict.data['log'].append("実行条件未成立: SKIP")
         #
-        logger.info( f'  キャンペーンページへ移動')
-        # ==============================
-        self.save_current_html('_0','html')
-        # ------------------------------
-        logger.debug( f'  - 商品･サービス一覧')
-        po = (By.LINK_TEXT,'商品･サービス一覧')
-        wait.until(EC.element_to_be_clickable(po))
-        driver.find_element(*po).click()
-        self.save_current_html('_1','html')
-        # ------------------------------
-        logger.debug( f'  - キャンペーン等')
-        po = (By.LINK_TEXT,'キャンペーン等')
-        wait.until(EC.element_to_be_clickable(po))
-        driver.find_element(*po).click()
-        self.save_current_html('_2','html')
-
-        logger.info( f'  キャンペーン一覧を処理')
-        # ==============================
-        num_items_tried = 0
-        max_items_tried = 5         # TODO: パラメータ化する
-        while self.pilot_internal1():
-            num_items_tried += 1
-            if num_items_tried >= max_items_tried:
-                logger.info( f'  処理上限到達のためbreak')
-                break
-        self.last_done[appdict.name][account['name']] = datetime.now()
-        logger.info( f'  応募完了したリンク数[{num_items_tried}]')
-
+        ###TODO: 実行ログのメール通知準備: Framework側に持っていきたい
+        wk = {}
+        wk[account['name']] = appdict.data['log']
+        self.pilot_result.append(wk)
+        #
         logger.debug(f'  @@pilot_internal: END')
 
     def pilot_internal1(self):
@@ -150,7 +164,8 @@ class RBankCampaign(RBankBase):
                     a_elem.click()
                     po = (By.TAG_NAME,"body")
                     wait.until(EC.visibility_of_element_located(po))
-                    self.pilot_result.append(title_text)
+                    # self.pilot_result.append(title_text)
+                    appdict.data['log'].append(title_text)
                     result = True           # 応募完了
                     # ------------------------------
                     logger.info( f'  ---- 一覧に戻る')
