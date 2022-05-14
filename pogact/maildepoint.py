@@ -7,9 +7,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import yaml
 import logutils.AppDict
-import RPAbase.RakutenBase
+import RPAbase.MaildepointBase
 
-class MailDePoint(RPAbase.RakutenBase.RakutenBase):
+class MailDePoint(RPAbase.MaildepointBase.MaildepointBase):
     def __init__(self):
         super().__init__()
         self.appdict = logutils.AppDict.AppDict
