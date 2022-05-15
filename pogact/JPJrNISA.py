@@ -62,7 +62,7 @@ class JPJrNISA(RPAbase.JPBankBase.JPBankBase):
         """
         appdict = self.appdict
         options = Options()
-        options.add_argument(r'--headless')
+        # options.add_argument(r'--headless')
         # イメージボタンが多用されているため、img表示は必要
         options.add_argument(r'--blink-settings=imagesEnabled=false')
         options.add_experimental_option('useAutomationExtension', False)
@@ -88,10 +88,25 @@ class JPJrNISA(RPAbase.JPBankBase.JPBankBase):
             wk = f'{title}/{balance}'
             logger.info(f' - {wk}')
             result_wk.append(f'{wk}')
+        # # NISA口座へ送金するときは総合口座のみに絞っておく & OTP受信のためのGmailを準備
+        # time.sleep(120)
 
         # 積立設定
         if self.is_element_present(By.LINK_TEXT, "投資信託"):
             driver.find_element_by_link_text("投資信託").click()
+
+            # 注意喚起ページが挿入されていればスキップする
+            time.sleep(0.5)
+            po = (By.XPATH, '//*[@id="contents"]/div[1]/h2')
+            if self.is_element_present(*po):
+                wk = driver.find_element(*po).text
+                if wk == '大切なお知らせ':
+                    wk = f'"{wk}"をskipします'
+                    logger.debug(f'    -- {wk}')
+                    result_wk.append(f'  - {wk}')
+                    po = (By.XPATH, '//*[@id="button"]')
+                    driver.find_element(*po).click()
+
             if self.is_element_present(By.LINK_TEXT, "お申し込み内容の照会・変更"):
                 driver.find_element_by_link_text("お申し込み内容の照会・変更").click()
                 pageobj = (By.XPATH, '//*[@id="mainContents"]/form[1]/table')
