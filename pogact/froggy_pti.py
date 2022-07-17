@@ -96,7 +96,8 @@ class Froggy_pti(Froggy):
             logger.info( f'  対象投信へ移動')
             # ==============================
             logger.debug(f'  - ファンド絞り込み')
-            fund_number = "1554"
+            # fund_number = "1554"
+            fund_number = "5020"
             url = "https://froggy.smbcnikko.co.jp/stock/" + fund_number      # TODO:
             driver.get(url)
             po = (By.TAG_NAME,'body')
@@ -121,7 +122,7 @@ class Froggy_pti(Froggy):
             # invest_type = driver.find_element(*po).text
             # ------------------------------
             logger.debug(f'  - 購入額を指定')
-            invest_fee = 500                #TODO:
+            invest_fee = 550                #TODO:
             po = (By.XPATH,"//input[@type='tel']")
             driver.find_element(*po).clear()
             driver.find_element(*po).send_keys(str(invest_fee))
@@ -194,6 +195,8 @@ class Froggy_pti(Froggy):
             self.save_current_html(stage_name('4'),'html')
             wk = self.appdict.wkfile(stage_name('_4'), "png")
             driver.save_screenshot(str(wk))
+            logger.debug(f'  -- 実行記録')
+            self.last_done[self.appdict.name][account['name']] = datetime.now()
         else:
             # すでに実行済み
             pass
@@ -204,8 +207,6 @@ class Froggy_pti(Froggy):
         wk = {}
         wk[account['name']] = self.result
         self.pilot_result.append(wk)
-        logger.debug(f'  -- 実行記録')
-        self.last_done[self.appdict.name][account['name']] = datetime.now()
         #
         logger.debug(f'  @@pilot_internal: END')
 
@@ -219,6 +220,7 @@ if __name__ == "__main__":
     except Exception as e:
         App.logger.critical(f'!!{App.exception_message(e)}')
         if App.driver:
+            App.driver.save_screenshot(f'abort')
             App.driver.quit()
     finally:
         result = App.pilot_result
