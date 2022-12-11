@@ -15,18 +15,21 @@ class Nanaco(RPAbase.RPAbase.RPAbase):
 
         logger.info("  Try to login at https://www.nanaco-net.jp/pc/emServlet")
         driver.get("https://www.nanaco-net.jp/pc/emServlet")
-        logger.debug("  wait for (By.ID, \"nanacoMember\")")
-        wait.until(EC.visibility_of_element_located((By.ID, "nanacoMember")))
+        po = (By.ID,'loginByPassword')
+        logger.debug(f"  wait for {po}")
+        wait.until(EC.visibility_of_element_located(po))
         if self.is_element_present(By.LINK_TEXT, "ログアウト"):
             logger.debug(f'  -- Logout first, because there is LOGOUT link.')
             self.pilot_logout(account)
         # ----
         logger.info("  -- Input card-number, security-code")
-        driver.find_element_by_name("XCID").send_keys(account['id'])
-        driver.find_element_by_name("SECURITY_CD").send_keys(account['pw'])
+        po = (By.XPATH,'//*[@id="login_password"]/table/tbody/tr[1]/td[2]/input')
+        driver.find_element(*po).send_keys(account['id'])
+        po = (By.XPATH,'//*[@id="login_password"]/table/tbody/tr[2]/td[2]/input')
+        driver.find_element(*po).send_keys(account['pw'])
         # ----
         logger.debug("  -- Click SUBMIT.")
-        wait.until(EC.visibility_of_element_located((By.NAME, "ACT_ACBS_do_LOGIN2"))).click()
+        wait.until(EC.visibility_of_element_located((By.NAME, "ACT_ACBS_do_LOGIN1"))).click()
 
 
     def pilot_logout(self, account):
