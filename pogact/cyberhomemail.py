@@ -17,6 +17,7 @@ import RPAbase.RakutenBase
 import RPAbase.MoppyBase
 import RPAbase.HapitasBase
 import RPAbase.SBIgroupBase
+import RPAbase.PointIncomeBase
 
 class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
     """
@@ -84,6 +85,10 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         wk = RPAbase.SBIgroupBase.SBIgroupBase()
         wk.silent_setup(driver, wait, self.logger)
         self.appdict.data['sites'].append(['SBIgroup',wk])
+        ### PointIncome
+        wk = RPAbase.PointIncomeBase.PointIncomeBase()
+        wk.silent_setup(driver, wait, self.logger)
+        self.appdict.data['sites'].append(['PointIncome',wk])
         ### Rakuten
         wk = RPAbase.RakutenBase.RakutenBase()
         wk.silent_setup(driver, wait, self.logger)
@@ -242,6 +247,26 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         logger.debug(f'    解析終了: 該当URL数[{len(links)}]')
         return links
 
+    def pilot_internal_pickup_url_pointincome(self, subj, fr):
+        driver = self.driver
+        logger = self.logger
+
+        logger.debug('  - PointIncomeを想定してメール本文を解析')
+        # ------------------------------
+        links = []
+
+        soup = BeautifulSoup(driver.page_source,"lxml")
+        lists = soup.select("a")
+        regex = re.compile(r'^https://pointi.jp/al/click_mail_magazine.php?\S+$', re.A)
+        for l in lists:
+            wk = l.get("href")
+            if regex.match(wk):
+                links.append(wk)
+                logger.debug(f'--FOUND:a href={wk}')
+
+        # URLリストを返却、空リストなら対象なし(Moppyメール外？)
+        logger.debug(f'    解析終了: 該当URL数[{len(links)}]')
+        return links
 
     def pilot_internal_pickup_url_rakuten(self, subj, fr):
         driver = self.driver
@@ -358,6 +383,10 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
             elif re.search(r'info@sbipoint.jp>', mbi_from):
                 pickup_type = 'SBIgroup'
                 links = self.pilot_internal_pickup_url_sbigroup(mbi_subject, mbi_from)
+            elif re.search(r'mag@pointi.jp>$', mbi_from):
+                # logger.debug('  - it seems PointIncome\'s mail.')
+                pickup_type = 'PointIncome'
+                links = self.pilot_internal_pickup_url_pointincome(mbi_subject, mbi_from)
             else:
                 logger.debug('  - it seems any other mail: suppose as Rakuten.')
                 pickup_type = 'Rakuten'
