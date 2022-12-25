@@ -51,7 +51,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         except Exception as e:
             self.logger.error(f' Caught Ex(Ignore): Reviving previous remain list: {self.exception_message(e)}')
             self.appdict.data['ptlinks'] = {}
-        
+
 
     def pilot_setup(self):
         """
@@ -324,7 +324,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         logger = self.logger
         logger.debug('@@pilot_internal:START')
 
-        logger.info('初期化')
+        logger.info('Cyberhome未読メール: 解析開始')
         # ==============================
         if self.appdict.data.get('log') is None:
             self.appdict.data['log'] = {}
@@ -332,9 +332,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         #
         ptlinks = self.appdict.data['ptlinks'].get(user['name'],{})
         self.appdict.data['ptlinks'][user['name']] = ptlinks       # write back
-        # print([x for x in ptlinks])
         num_ptlinks = self.open_url_tree(user)
-        # print(num_ptlinks)
         self.appdict.data['log'][user['name']].append(f'Not visited before: [{sum(num_ptlinks)}]')
         logger.info('Cyberhome未読メール: 解析開始')
         # ==============================
@@ -343,7 +341,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         driver.find_element_by_id("menu_mail_inbox_unread").click()
         mail_table = driver.find_element_by_id(r"mail_list_tbody")
         mails = mail_table.find_elements_by_tag_name(r"tr")
-        #
+		#
         self.appdict.data['log'][user['name']].append(f'Mails: {len(mails)}')
         found_mail = []
         found_link = []
@@ -465,6 +463,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         with open(f'{fname}_remain.yaml', 'w', encoding='utf-8') as f:
             #TODO: last_done.yamlで手当できないか？
             yaml.dump(self.appdict.data['ptlinks'], f, default_flow_style=False, allow_unicode=True)
+        self.appdict.data['log'][user['name']].append(f'Non-visited: {sum_NG} link(s).')
 
         self.pilot_result.append([user['name'],self.appdict.data['log'][user['name']]])
         logger.debug('@@pilot_internal: END')
