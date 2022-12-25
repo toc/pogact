@@ -122,10 +122,9 @@ class Froggy_pti(Froggy):
             # invest_type = driver.find_element(*po).text
             # ------------------------------
             logger.debug(f'  - 購入額を指定')
-            invest_fee = 550                #TODO:
             po = (By.XPATH,"//input[@type='tel']")
             driver.find_element(*po).clear()
-            driver.find_element(*po).send_keys(str(invest_fee))
+            driver.find_element(*po).send_keys(account['amount'])
             # #
             # resmsg = f'pt usage: >{invest_type}<[{invest_fee}]'
             # self.result.append(resmsg)
@@ -142,7 +141,7 @@ class Froggy_pti(Froggy):
             driver.find_element_by_xpath("//div[@id='__layout']/div/div/aside/div/div/div/div[2]/div[5]/button").click()
             logger.debug(f'  -- この内容で注文するボタン押下')
             # 画面展開待ち
-            po = (By.XPATH, '//*[@id="__layout"]/div/div/aside/div/div/div/div[2]/div[2]/button[2]')
+            po = (By.XPATH, '//*[@id="__layout"]/div/div/aside/div/div/div/div[2]/div[3]/button[2]')
             wait.until(EC.visibility_of_element_located(po))
             wk = driver.find_element(*po).text
             logger.debug(f'  --- >{wk}<')
@@ -167,10 +166,13 @@ class Froggy_pti(Froggy):
             wk = driver.find_element(*po).text
             logger.debug(f'  --- >{wk}<')
             self.assertEqual(wk, '注文内容の確認')
+            po = (By.CSS_SELECTOR, '.passwordInput__input')
+            driver.find_element(*po).clear()
+            driver.find_element(*po).send_keys(account['pwd3'])      # TODO: 外部パラメータ化
             self.save_current_html(stage_name('2'),'html')
             wk = self.appdict.wkfile(stage_name('_2-order'), "png")
             driver.save_screenshot(str(wk))
-            po = (By.XPATH,"//div[@id='__layout']/div/div/aside/div/div/div/div[2]/div[2]/button")
+            po = (By.XPATH,"//div[@id='__layout']/div/div/aside/div/div/div/div[2]/div[3]/button")
             driver.find_element(*po).click()
             # 画面展開待ち
             logger.debug(f'  -- 注文完了画面を確認')
