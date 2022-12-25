@@ -125,9 +125,8 @@ class SBISecReport(SBISec):
             payment = driver.find_element(*po)
             payment.clear()
             payment.send_keys(str(amount_of_invest))
-            # time.sleep(30)
             #
-            po = (By.XPATH,'//*[@id="MAINAREA02_780"]/form/table[2]/tbody/tr[2]/td/table/tbody/tr[1]')          #TODO:
+            po = (By.XPATH,'//*[@id="MAINAREA02_780"]/form/table[2]/tbody/tr[3]/td/table/tbody/tr[1]')          #TODO:
             pnt_before = driver.find_element(*po).text
             #
             po = (By.ID,'zenbushiyou')          #TODO:
