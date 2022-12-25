@@ -59,7 +59,7 @@ class SBISecReport(SBISec):
         logger.debug(f'  Compare weeknum: curr[{now_weeknum}] vs prev[{ld_weeknum}]')
         if now_weeknum <= ld_weeknum:
             # 現在月が最終実行月以前であれば実行不要
-            resmsg = f' Already executed at [{last_done}].  EXIT !'
+            resmsg = f' Already done for [{ld_weeknum}] at [{last_done}].  EXIT !'
             logger.warn(resmsg)
             self.result.append(resmsg)
             result = False
@@ -104,6 +104,7 @@ class SBISecReport(SBISec):
             logger.debug(f'  wait for {po}')
             wait.until(EC.visibility_of_element_located(po))
             fund = driver.find_element(*po)
+            fundname = fund.text
             resmsg = f'fund: >{fund.text}<'
             self.result.append(resmsg)
             fund.click()
@@ -124,6 +125,7 @@ class SBISecReport(SBISec):
             payment = driver.find_element(*po)
             payment.clear()
             payment.send_keys(str(amount_of_invest))
+            # time.sleep(30)
             #
             po = (By.XPATH,'//*[@id="MAINAREA02_780"]/form/table[2]/tbody/tr[2]/td/table/tbody/tr[1]')          #TODO:
             pnt_before = driver.find_element(*po).text
@@ -151,19 +153,28 @@ class SBISecReport(SBISec):
             po = (By.XPATH,"//img[@alt='注文発注']")          #TODO:
             driver.find_element(*po).click()
             # -- 発注情報収集
-            po = (By.XPATH,'//*[@id="MAINAREA02_780"]/form/div[4]/table/tbody/tr[4]')
-            resmsg = f'fund: >{driver.fullscreen_window(*po).text}<'
-            self.result.append(resmsg)
-            po = (By.XPATH,'//*[@id="MAINAREA02_780"]/form/div[4]/table/tbody/tr[6]')
-            resmsg = f'fund: >{driver.fullscreen_window(*po).text}<'
-            self.result.append(resmsg)
-            po = (By.XPATH,'//*[@id="MAINAREA02_780"]/form/div[4]/table/tbody/tr[7]')
-            resmsg = f'fund: >{driver.fullscreen_window(*po).text}<'
-            self.result.append(resmsg)
+            # po = (By.XPATH,'//*[@id="MAINAREA02_780"]/form/div[4]/table/tbody/tr[4]')
+            # resmsg = f'fund: >{driver.find_element(*po).text}<'
+            # self.result.append(resmsg)
+            # po = (By.XPATH,'//*[@id="MAINAREA02_780"]/form/div[4]/table/tbody/tr[6]')
+            # resmsg = f'fund: >{driver.fullscreen_window(*po).text}<'
+            # self.result.append(resmsg)
+            # po = (By.XPATH,'//*[@id="MAINAREA02_780"]/form/div[4]/table/tbody/tr[7]')
+            # resmsg = f'fund: >{driver.find_element(*po).text}<'
+            # self.result.append(resmsg)
             #
             self.save_current_html(stage_name('5'),'html')
             wk = self.appdict.wkfile(stage_name('5-order'), "png")
             driver.save_screenshot(str(wk))
+            logger.debug(f'  -- 実行記録')
+            self.last_done[self.appdict.name][account['name']] = datetime.now()
+            wk = {}
+            wk[account['name']] = [
+                {'fundname', fundname},
+                {'Points before', pnt_before},
+                {'amount of invest', amount_of_invest}
+            ]
+            self.pilot_result.append(wk)
         else:
             # すでに実行済み
             pass
@@ -171,15 +182,6 @@ class SBISecReport(SBISec):
         logger.debug(f'  - 後片付け')
         # ==============================
         logger.debug(f'  -- 報告メール準備')
-        wk = {}
-        wk[account['name']] = [
-            {'fundname', fundname},
-            {'Points before', pnt_before},
-            {'amount of invest', amount_of_invest}
-        ]
-        self.pilot_result.append(wk)
-        logger.debug(f'  -- 実行記録')
-        self.last_done[self.appdict.name][account['name']] = datetime.now()
         #
         logger.debug(f'  @@pilot_internal: END')
 

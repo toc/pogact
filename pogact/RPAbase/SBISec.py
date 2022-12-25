@@ -24,6 +24,11 @@ class SBISec(RPAUserService):
         driver.find_element_by_name("user_password").send_keys(account['pw'])
         logger.debug("  -- Click SUBMIT.")
         driver.find_element_by_name("ACT_login").click()
+        #
+        time.sleep(1.5)
+        wait.until(EC.visibility_of_element_located((By.TAG_NAME, 'body')))
+        #
+        return
 
 
     def pilot_logout(self, account):
