@@ -2,6 +2,7 @@ from os import truncate
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import TimeoutException
 import RPAbase.RPAbaseRecapture
 import time
 
@@ -64,9 +65,14 @@ class AOLbase(RPAbase.RPAbaseRecapture.RPAbaseRecapture):
             wait.until(EC.visibility_of_element_located(pageobj))
             # driver.find_element(*pageobj).click()
 
-            pageobj = (By.PARTIAL_LINK_TEXT, 'サインイン')
-            logger.debug(f'-- wait for [{pageobj}]')
-            wait.until(EC.visibility_of_element_located(pageobj))
+            try:
+                pageobj = (By.PARTIAL_LINK_TEXT, 'Login / Join')
+                logger.debug(f'-- wait for [{pageobj}]')
+                wait.until(EC.visibility_of_element_located(pageobj))
+            except TimeoutException as e:
+                pageobj = (By.PARTIAL_LINK_TEXT, 'サインイン')
+                logger.debug(f'-- wait for [{pageobj}]')
+                wait.until(EC.visibility_of_element_located(pageobj))
 
             result = True
 

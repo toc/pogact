@@ -232,6 +232,9 @@ class AOLmail(AOLbase):
                     wk.append( self.appdict.data['ptlinks'][user['name']]['ECnavi'] )
                     self.appdict.data['log'][user['name']].append(wk)
                     break               # End loop: while
+                else:
+                    # ファイルを削除した場合は一覧表示の更新を待つ必要あり
+                    time.sleep(5)
         except Exception as e:
             logger.error(f'Caught exception while analyzing mails: {self.exception_message(e)}')
             logger.error(f'Raise exception and exit!')
