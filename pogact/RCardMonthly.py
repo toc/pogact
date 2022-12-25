@@ -34,7 +34,8 @@ class RCardMonthly(RCardBase):
 
     def pilot_setup(self):
         options = Options()
-        options.add_argument(r'--headless')
+        if __debug__ is False:
+            options.add_argument(r'--headless')
         options.add_argument(r'--blink-settings=imagesEnabled=false')
         options.add_experimental_option('useAutomationExtension', False)
         options.add_experimental_option('excludeSwitches', ['enable-automation'])
@@ -50,18 +51,31 @@ class RCardMonthly(RCardBase):
         bills = []
         try:
             # Wait page top
-            logger.debug(f'wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#top > div.ghead.rce-ghead > div.service-bar")))')
-            wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#top > div.ghead.rce-ghead > div.service-bar")))
+            # logger.debug(f'wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#top > div.ghead.rce-ghead > div.service-bar")))')
+            # wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#top > div.ghead.rce-ghead > div.service-bar")))
 
             # get　invoice summary
-            card_info = driver.find_element_by_css_selector("#top > div.rce-l-wrap.is-grey.rce-main > div > div.rce-billInfo.rf-card.rf-card-square.rf-card-edge > div.rce-contents")
-            summary = card_info.find_element_by_css_selector("div.rce-columns > div.rce-columns-cell.rce-billInfo-month")
-            bills.append(summary.find_element_by_css_selector("h3.rf-title-collar.rce-title-belt-first").text)
-            bills.append(summary.find_element_by_css_selector("table:nth-child(2) > tbody > tr:nth-child(1) > td").text)
-            balance = summary.find_element_by_id("parent-balance")
-            divs = balance.find_elements_by_xpath("div")
-            for div in divs:
-                bills.append(div.text)
+            # card_info = driver.find_element_by_css_selector("#top > div.rce-l-wrap.is-grey.rce-main > div > div.rce-billInfo.rf-card.rf-card-square.rf-card-edge > div.rce-contents")
+            # summary = card_info.find_element_by_css_selector("div.rce-columns > div.rce-columns-cell.rce-billInfo-month")
+            # bills.append(summary.find_element_by_css_selector("h3.rf-title-collar.rce-title-belt-first").text)
+            # bills.append(summary.find_element_by_css_selector("table:nth-child(2) > tbody > tr:nth-child(1) > td").text)
+            # balance = summary.find_element_by_id("parent-balance")
+            # divs = balance.find_elements_by_xpath("div")
+            # for div in divs:
+            #     bills.append(div.text)
+
+            ### ポイント実績確認に変更
+            # po = (By.LINK_TEXT,"ポイントの詳細")
+            # logger.debug(f'wait.until(EC.visibility_of_element_located({po}))')
+            # wait.until(EC.visibility_of_element_located(po))
+            # driver.find_element(*po).click()
+            driver.get("https://point.rakuten.co.jp/?l-id=point_header_top")
+            po = (By.LINK_TEXT,"楽天ポイントガイド")
+            logger.debug(f'wait.until(EC.visibility_of_element_located({po}))')
+            wait.until(EC.visibility_of_element_located(po))
+            ###　ポイント情報サマリ
+            po = (By.CSS_SELECTOR,".gadget-body")
+            bills.append(driver.find_element(*po).text)
         except Exception as e:
             bills.append(f'{App.exception_message(e)}')
         finally:
