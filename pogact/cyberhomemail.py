@@ -13,7 +13,8 @@ import lxml
 import yaml
 import logutils.AppDict
 import RPAbase.CyberhomeBase
-import RPAbase.RakutenBase
+# import RPAbase.RakutenBase
+from RPAbase.InfoseekBase import RakutenBase
 import RPAbase.MoppyBase
 import RPAbase.HapitasBase
 import RPAbase.SBIgroupBase
@@ -90,7 +91,8 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         wk.silent_setup(driver, wait, self.logger)
         self.appdict.data['sites'].append(['PointIncome',wk])
         ### Rakuten
-        wk = RPAbase.RakutenBase.RakutenBase()
+        # wk = RPAbase.RakutenBase.RakutenBase()
+        wk = RakutenBase()
         wk.silent_setup(driver, wait, self.logger)
         self.appdict.data['sites'].append(['Rakuten',wk])
 
@@ -287,6 +289,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
                 "https://point-g.rakuten.co.jp/mailmag/common/pg_click_banner_btn_2.png",
                 "https://image.books.rakuten.co.jp/books/img/bnr/other/group/201811/point-click-201811-main.png",
                 "https://edy.rakuten.co.jp/htmlmail/ad/images/btn_get.gif",
+                "https://image.infoseek.rakuten.co.jp/content/tmail/htmlmail/bnr_03b.png",
                 ):
                 links.append(l.parent.get("href"))
                 logger.debug(f'      --FOUND:img src={wk}')
