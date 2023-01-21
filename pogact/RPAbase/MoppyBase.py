@@ -1,3 +1,4 @@
+import time
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -33,7 +34,9 @@ class MoppyBase(RPAUserService):
         pageobj = (By.NAME, 'pass')
         driver.find_element(*pageobj).clear()
         driver.find_element(*pageobj).send_keys(account['pw'])
-
+        #
+        time.sleep(2)        # Moppy may need some preparation.
+        #
         driver.find_element(By.CSS_SELECTOR,".a-btn__login").click()
         logger.debug('  SUBMIT login.')
         ###

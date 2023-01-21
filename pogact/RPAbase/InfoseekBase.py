@@ -51,7 +51,7 @@ class RakutenBase(RPAUserService):
         logger.debug(f'  wait for {po}')
         wait.until( EC.visibility_of_element_located(po))
         #
-        return self.is_element_present("po")
+        return self.is_element_present(*po)
 
     def pilot_logout(self, account=None):
         driver = self.driver
