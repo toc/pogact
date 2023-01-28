@@ -462,6 +462,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         logger.info(f'アクセスできなかったURLを一時保存(次回処理)')
         # ==============================
         logger.debug(f'- 一時保留URL={sum_NG}')
+        logger.debug(f'  - ptlinks={self.appdict.data["ptlinks"]}')
         fname = str(self.appdict.name).lower()
         with open(f'{fname}_remain.yaml', 'w', encoding='utf-8') as f:
             #TODO: last_done.yamlで手当できないか？

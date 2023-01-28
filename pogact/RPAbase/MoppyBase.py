@@ -35,7 +35,7 @@ class MoppyBase(RPAUserService):
         driver.find_element(*pageobj).clear()
         driver.find_element(*pageobj).send_keys(account['pw'])
         #
-        time.sleep(2)        # Moppy may need some preparation.
+        time.sleep(5)        # Moppy may need some preparation.
         #
         driver.find_element(By.CSS_SELECTOR,".a-btn__login").click()
         logger.debug('  SUBMIT login.')
