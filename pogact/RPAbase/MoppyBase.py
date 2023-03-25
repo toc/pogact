@@ -37,7 +37,7 @@ class MoppyBase(RPAUserService):
         #
         time.sleep(5)        # Moppy may need some preparation.
         #
-        driver.find_element(By.CSS_SELECTOR,".a-btn__login").click()
+        driver.find_element(By.CSS_SELECTOR,"button.a-btn__login").click()
         logger.debug('  SUBMIT login.')
         ###
         pageobj = (By.TAG_NAME, 'body')
