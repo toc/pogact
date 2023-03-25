@@ -292,7 +292,7 @@ class MailDePoint(RPAbase.MaildepointBase.MaildepointBase):
                     unvisited_urls.append(point_item)
 
         if unvisited_urls != []:
-            logger.warning("!! Some urls cannot be visited normally.  Try to save urls for next challenge.")
+            logger.warn("!! Some urls cannot be visited normally.  Try to save urls for next challenge.")
             logger.debug(
                 pprint.pformat(unvisited_urls)
             )

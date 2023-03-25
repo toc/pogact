@@ -25,12 +25,14 @@ class AOLbase(RPAbase.RPAbaseRecapture.RPAbaseRecapture):
         if self.is_element_present(*pageobj):
             logger.info('-- Try to log-in.')
             pageobj = (By.NAME, "username")
+            driver.find_element(*pageobj).clear()
             driver.find_element(*pageobj).send_keys(account['id'])
             pageobj = (By.NAME, "signin")
             driver.find_element(*pageobj).click()
 
             pageobj = (By.NAME, "password")
             wait.until(EC.visibility_of_element_located(pageobj))
+            driver.find_element(*pageobj).clear()
             driver.find_element(*pageobj).send_keys(account['pw'])
             pageobj = (By.NAME, "verifyPassword")
             driver.find_element(*pageobj).click()
