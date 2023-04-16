@@ -83,8 +83,8 @@ class JPJrNISA(RPAbase.JPBankBase.JPBankBase):
             logger.debug('  wait for (By.ID, "strMain")')
             wait.until(EC.visibility_of_element_located((By.ID, 'strMain')))
             # 本体の処理
-            title = driver.find_element_by_css_selector("#strMain > div:nth-child(4) > h2 > span").text
-            balance = driver.find_element_by_css_selector("#strMain > div:nth-child(4) > div > div.col.w55 > p").text
+            title = driver.find_element_by_css_selector("#strMain > div:nth-child(3) > h2 > span").text
+            balance = driver.find_element_by_css_selector("#strMain > div:nth-child(3) > div > div.col.w55 > p").text
             wk = f'{title}/{balance}'
             logger.info(f' - {wk}')
             result_wk.append(f'{wk}')
