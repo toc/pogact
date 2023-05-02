@@ -18,10 +18,12 @@ class Froggy(RPAUserService):
         po = (By.CSS_SELECTOR,'#__layout > div > header > div')
         logger.debug(f"  wait for {po}")
         wait.until(EC.visibility_of_element_located(po))
-        po=(By.CSS_SELECTOR,'#__layout > div > header > div > div.l-header__first > div > div.l-header__right > a.l-header__login > span')
-        if self.is_element_present(*po) is True:
+        po=(By.PARTIAL_LINK_TEXT,'ログイン')
+        if self.is_element_present(*po) is not True:
             self.pilot_logout(account)
-
+        #
+        driver.find_element(*po).click()
+        #
         po = (By.ID, 'js-first-focus')
         driver.find_element(*po).clear()
         driver.find_element(*po).send_keys(account['id'])
