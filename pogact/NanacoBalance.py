@@ -51,11 +51,11 @@ class NanacoBalance(RPAbase.nanaco.Nanaco):
             logger.debug(f'  wait for visibility_of_element_located: (By.ID,"memberTblMid")')
             wait.until(EC.visibility_of_element_located((By.ID,"memberTblMid")))
             #
-            money_info = driver.find_element_by_id("memberInfoFull")
-            detail_box = money_info.find_elements_by_class_name("detailBox")
+            money_info = driver.find_element(By.ID,"memberInfoFull")
+            detail_box = money_info.find_elements(By.CLASS_NAME,"detailBox")
             for detail in detail_box:
                 # Title
-                divs = detail.find_elements_by_xpath("div")
+                divs = detail.find_elements(By.XPATH,"div")
                 wk = f'{divs[0].text.splitlines()[0]}'
                 logger.debug(f'□{wk}')
                 result.append(f'□{wk}')

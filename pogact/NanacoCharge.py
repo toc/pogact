@@ -56,7 +56,7 @@ class NanacoCharge(RPAbase.nanaco.Nanaco):
             logger.info(f'  - 残高情報を確認')
             logger.debug(f'  wait for visibility_of_element_located: (By.ID,"memberInfoFull")')
             wait.until(EC.visibility_of_element_located((By.ID,"memberInfoFull")))
-            money_info = driver.find_element_by_id("memberInfoFull")
+            money_info = driver.find_element(By.ID,"memberInfoFull")
             detail_box = money_info.find_elements_by_class_name("detailBox")
             for detail in detail_box:
                 divs = detail.find_elements_by_xpath("div")
@@ -67,38 +67,38 @@ class NanacoCharge(RPAbase.nanaco.Nanaco):
             logger.info(f'  - クレジット・パスワード入力')
             logger.debug(f'  wait for visibility_of_element_located: (By.LINK_TEXT,"nanacoクレジットチャージ...")')
             wait.until(EC.visibility_of_element_located((By.LINK_TEXT,"nanacoクレジットチャージ クレジットチャージやオートチャージの各種設定・変更手続きができます。")))
-            driver.find_element_by_link_text(u"nanacoクレジットチャージ クレジットチャージやオートチャージの各種設定・変更手続きができます。").click()
+            driver.find_element(By.LINK_TEXT,u"nanacoクレジットチャージ クレジットチャージやオートチャージの各種設定・変更手続きができます。").click()
             # ----------------------
             logger.info(f'  - チャージパスワード入力')
             logger.debug(f'  wait for visibility_of_element_located: (By.NAME,"CRDT_CHEG_PWD")')
             wait.until(EC.visibility_of_element_located((By.NAME,"CRDT_CHEG_PWD")))
-            driver.find_element_by_name("CRDT_CHEG_PWD").clear()
-            driver.find_element_by_name("CRDT_CHEG_PWD").send_keys(account['charge_pw'])
-            driver.find_element_by_name("ACT_ACBS_do_CRDT_CHRG_PWD_AUTH").click()
+            driver.find_element(By.NAME,"CRDT_CHEG_PWD").clear()
+            driver.find_element(By.NAME,"CRDT_CHEG_PWD").send_keys(account['charge_pw'])
+            driver.find_element(By.NAME,"ACT_ACBS_do_CRDT_CHRG_PWD_AUTH").click()
             # ----------------------
             logger.info(f'  - 入金メニュー選択')
             logger.debug(f'  wait for visibility_of_element_located: (By.LINK_TEXT,"クレジットチャージ（入金）")')
             wait.until(EC.visibility_of_element_located((By.LINK_TEXT,"クレジットチャージ（入金）")))
-            driver.find_element_by_link_text(u"クレジットチャージ（入金）").click()
+            driver.find_element(By.LINK_TEXT,u"クレジットチャージ（入金）").click()
             # self.save_current_html('after_entering_credit_charge.html')
             # ----------------------
             # time.sleep(30)
             logger.info(f'  - 入金額選択(30000円)')
             logger.debug(f'  wait for visibility_of_element_located: (By.NAME,"INPUT_AMT")')
             wait.until(EC.visibility_of_element_located((By.NAME,"INPUT_AMT")))
-            driver.find_element_by_name("INPUT_AMT").clear()
-            driver.find_element_by_name("INPUT_AMT").send_keys(account['charge_with'])
-            driver.find_element_by_name("ACT_ACBS_do_CRDT_CHRG_INPUT").click()
+            driver.find_element(By.NAME,"INPUT_AMT").clear()
+            driver.find_element(By.NAME,"INPUT_AMT").send_keys(account['charge_with'])
+            driver.find_element(By.NAME,"ACT_ACBS_do_CRDT_CHRG_INPUT").click()
             # self.save_current_html('after_entering_charge_selection.html')
             # ----------------------
             logger.info(f'  - 申込みボタン（最終確認）')
             logger.debug(f'  wait for visibility_of_element_located: (By.NAME,"ACT_ACBS_do_CRDT_CHRG_CONF")')
             wait.until(EC.visibility_of_element_located((By.NAME,"ACT_ACBS_do_CRDT_CHRG_CONF")))
-            msg = driver.find_element_by_id(r"formTbl").text
+            msg = driver.find_element(By.ID,r"formTbl").text
             logger.info(f'  -- 入金予定: {msg}')
             # self.save_current_html('before_last_confirm.html')
             logger.debug(f'  -- 申込ボタン押下')
-            driver.find_element_by_name("ACT_ACBS_do_CRDT_CHRG_CONF").click()
+            driver.find_element(By.NAME,"ACT_ACBS_do_CRDT_CHRG_CONF").click()
             # 結果確認
             ### TODO
             print(u"結果確認は未実装！")
@@ -106,7 +106,7 @@ class NanacoCharge(RPAbase.nanaco.Nanaco):
         except Exception as e:
             logger.error(self.exception_message(e))
             if self.is_element_present(By.ID, r'textSystem'):
-                wk = driver.find_element_by_id(r'textSystem').text
+                wk = driver.find_element(By.ID,r'textSystem').text
                 error_text = ','.join(wk.split('\n'))
                 self.pilot_result.append(error_text)
                 logger.error(f' !! {error_text}')
