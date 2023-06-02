@@ -15,7 +15,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import SessionNotCreatedException
 from selenium.common.exceptions import WebDriverException
-from webdrivermanager import ChromeDriverManager
+from webdriver_manager.chrome import ChromeDriverManager
 import yaml
 from logutils.logger import Logger
 import logutils.mailreporter
@@ -115,7 +115,8 @@ class RPAbase():
             try:
                 cdm = ChromeDriverManager()
                 logger.debug(f"  -- download_and_install() == Try to update driver")
-                driver_path = cdm.download_and_install()[0]
+                # driver_path = cdm.download_and_install()[0]
+                driver_path = cdm.install()
                 ld_webdriver['Chrome'] = [driver_path,datetime.datetime.now()]
                 self.last_done['WebDriver'] = ld_webdriver
                 logger.debug(f"  driver_path: {driver_path}")
