@@ -7,7 +7,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from webdrivermanager import ChromeDriverManager
 import logutils.AppDict
 from RPAbase.RakutenBase import RakutenBase
 
@@ -88,7 +87,7 @@ class RWebSearch(RakutenBase):
             logger.debug(f'   - ワードを抽出.')
             # ------------------------------
             what = '//*[@id="contentsBody"]/div[1]/article[2]/section/ol/li/a/article'
-            word_list = driver.find_elements_by_xpath(what)
+            word_list = driver.find_elements(By.XPATH,what)
             words = [a.text for a in word_list]
             logger.debug(f'     =>{words}')
 
@@ -134,16 +133,14 @@ class RWebSearch(RakutenBase):
 
                 logger.debug(f'   - Get total search count')
                 # 検索画面のレイアウトが２種類できたみたい。 @20200418
-                # progress-messageの表示確認が取れていれば、口数情報の取得位置を変えるだけでよさそう。
-                # objects = driver.find_elements_by_id("curr-kuchisu-count")
                 # レイアウト変更対応
-                objects = driver.find_elements_by_xpath('//*[@id="wrapper"]/header/div/div[1]/div[1]/div[2]/div/div[1]/span[2]/em')
+                objects = driver.find_elements(By.XPATH,'//*[@id="wrapper"]/header/div/div[1]/div[1]/div[2]/div/div[1]/span[2]/em')
                 if len(objects) > 0:
                     logger.debug(f"    - Found: (By.XPATH, '//*[@id=\"wrapper\"]/header/div/div[1]/div[1]/div[2]/div/div[1]/span[2]/em')")
                 else:
                     # 2023/04/15以前
                     logger.debug(f"    - Found: (By.XPATH, '//*[@id=\"wrapper\"]/header/div/div/div[2]/div[2]/div[2]/div/div[1]/span[2]/span/em')")
-                    objects = driver.find_elements_by_xpath('//*[@id="wrapper"]/header/div/div/div[2]/div[2]/div[2]/div/div[1]/span[2]/span/em')
+                    objects = driver.find_elements(By.XPATH,'//*[@id="wrapper"]/header/div/div/div[2]/div[2]/div[2]/div/div[1]/span[2]/span/em')
                 cnt = objects[0].text
                 logger.debug(f'     Total search count = [{cnt}]')
                 if (int(cnt) >= 30):

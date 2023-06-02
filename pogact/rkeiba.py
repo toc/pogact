@@ -53,7 +53,7 @@ class Rkeiba(RkeibaBase):
         driver.get('https://keiba.rakuten.co.jp/')
         logger.debug('  wait for (By.LINK_TEXT, u"入金")')
         wait.until(EC.element_to_be_clickable((By.LINK_TEXT, u"入金")))
-        driver.find_element_by_link_text(u"入金").click()
+        driver.find_element(By.LINK_TEXT,u"入金").click()
         # ポップアップに移動
         logger.debug('  wait for NEW POPUP WINDOW.')
         wait.until(lambda d: len(d.window_handles) > 1)
@@ -99,7 +99,7 @@ class Rkeiba(RkeibaBase):
         for i in range(8):
             logger.debug(f'  - {i}: wait.until(EC.visibility_of_element_located((By.LINK_TEXT,"更新")))')
             wait.until(EC.visibility_of_element_located((By.LINK_TEXT,'更新'))).click()
-            wk = driver.find_element_by_xpath('//*[@id="balanceStatus"]/ul/li[3]/span/span[2]').text
+            wk = driver.find_element(By.XPATH,'//*[@id="balanceStatus"]/ul/li[3]/span/span[2]').text
             logger.debug(f'  - current balance: >{wk}<')
             if wk != '':
                 break

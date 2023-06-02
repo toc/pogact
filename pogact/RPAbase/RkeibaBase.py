@@ -25,16 +25,16 @@ class RkeibaBase(RPAUserService):
             self.pilot_logout()
         logger.debug('  wait for (By.LINK_TEXT,u"マイページログイン")')
         wait.until(EC.element_to_be_clickable((By.LINK_TEXT, u"マイページログイン")))
-        driver.find_element_by_link_text(u"マイページログイン").click()
+        driver.find_element(By.LINK_TEXT,"マイページログイン").click()
         # with codecs.open("temp.html", "w", "cp932", 'ignore') as f:
         #     f.write(driver.page_source)
         logger.debug('  wait for (By.ID, "loginInner_u")')
         wait.until(EC.element_to_be_clickable((By.ID, "loginInner_u")))
-        driver.find_element_by_id("loginInner_u").clear()
-        driver.find_element_by_id("loginInner_u").send_keys(account['id'])
-        driver.find_element_by_id("loginInner_p").clear()
-        driver.find_element_by_id("loginInner_p").send_keys(account['pw'])
-        driver.find_element_by_name("submit").click()
+        driver.find_element(By.ID,"loginInner_u").clear()
+        driver.find_element(By.ID,"loginInner_u").send_keys(account['id'])
+        driver.find_element(By.ID,"loginInner_p").clear()
+        driver.find_element(By.ID,"loginInner_p").send_keys(account['pw'])
+        driver.find_element(By.NAME,"submit").click()
         logger.debug('  SUBMIT login.')
         ###
         logger.debug('  wait for link_text "ログアウト"')
@@ -60,7 +60,7 @@ class RkeibaBase(RPAUserService):
         logger.debug(f"  -- LINK_TEXT[ログアウト] exists? {result}")
         if result is True:
             logger.debug(f"  -- Try to click ログアウト link.")
-            driver.find_element_by_link_text(u"ログアウト").click()
+            driver.find_element(By.LINK_TEXT,"ログアウト").click()
         else:
             logger.debug(f"  -- Do nothing and exit.")
         return result
