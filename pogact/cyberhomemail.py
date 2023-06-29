@@ -187,7 +187,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
 
         soup = BeautifulSoup(driver.page_source,"lxml")
         lists = soup.select("a")
-        regex = re.compile(r'^https://pc.moppy.jp/clc/\?clc_tag=\S+$', re.A)
+        regex = re.compile(r'^https://pc.moppy.jp/(clc/\?clc_tag|cc/c\?t)=\S+$', re.A)
         for l in lists:
             wk = l.get("href")
             if regex.match(wk):
