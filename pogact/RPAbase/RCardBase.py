@@ -42,11 +42,11 @@ class RCardBase(RPAbase.RPAbase.RPAbase):
         logger.debug('  wait for (By.ID, r"linkButton")')
         wait.until(EC.element_to_be_clickable((By.ID, r'loginButton')))
 
-        driver.find_element_by_id("u").clear()
-        driver.find_element_by_id("u").send_keys(account['id'])
-        driver.find_element_by_id("p").clear()
-        driver.find_element_by_id("p").send_keys(account['pw'])
-        driver.find_element_by_id("loginButton").click()
+        driver.find_element(By.ID,"u").clear()
+        driver.find_element(By.ID,"u").send_keys(account['id'])
+        driver.find_element(By.ID,"p").clear()
+        driver.find_element(By.ID,"p").send_keys(account['pw'])
+        driver.find_element(By.ID,"loginButton").click()
         ###
         logger.debug('  wait for link_text "ログアウト"')
         wait.until(
@@ -68,7 +68,7 @@ class RCardBase(RPAbase.RPAbase.RPAbase):
         logger.debug(f"  -- LINK_TEXT[ログアウト] exists? {result}")
         if result is True:
             logger.debug(f"  -- Try to click ログアウト link.")
-            driver.find_element_by_link_text(u"ログアウト").click()
+            driver.find_element(By.LINK_TEXT,u"ログアウト").click()
         else:
             logger.debug(f"  -- Do nothing and exit.")
         return result

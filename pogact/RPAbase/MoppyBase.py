@@ -69,7 +69,7 @@ class MoppyBase(RPAUserService):
         logger.debug(f"  -- LINK_TEXT[ログアウト] exists? {result}")
         if result is True:
             logger.debug(f"  -- Try to click ログアウト link.")
-            driver.find_element_by_link_text(u"ログアウト").click()
+            driver.find_element(By.LINK_TEXT,u"ログアウト").click()
         else:
             logger.debug(f"  -- Do nothing and exit.")
         return result

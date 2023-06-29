@@ -52,7 +52,7 @@ class RCardCampaign(RCardBase):
         logger.debug(f'    ({cnt}, {"/".join(item.text.splitlines())})')
 
         # ポイント獲得リンクの確認: URLではなくonclickリンクなので注意
-        links = item.find_elements_by_xpath("div[2]/div/a")
+        links = item.find_elements(By.XPATH,"div[2]/div/a")
         logger.debug(f'  - links:[{len(links)}]')
         url = links[0].get_attribute("onclick")
         logger.debug(f'  -- url  of link:[{url}]')
@@ -98,25 +98,25 @@ class RCardCampaign(RCardBase):
             wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#top > div.rce-l-wrap.is-grey.rce-main")))
 
             # Move to target page
-            driver.find_element_by_partial_link_text("クリックしてポイント").click()
+            driver.find_element(By.PARTIAL_LINK_TEXT,"クリックしてポイント").click()
             logger.debug(f' - wait.until(EC.visibility_of_element_located((By.ID, "contentsArea")))')
             wait.until(EC.visibility_of_element_located((By.ID, "contentsArea")))
 
             # 未獲得ポイント
             if self.is_element_present(By.ID,"procurablePoint"):
-                unaquired = driver.find_element_by_id("procurablePoint").text
+                unaquired = driver.find_element(By.ID,"procurablePoint").text
                 logger.info(f' 未獲得ポイント数: [{unaquired}]')
                 # 無限ループ
                 cnt = 1
                 while True:
                     logger.debug(f'-- Loop start: cnt={cnt}')
-                    top_area = driver.find_element_by_id("topArea")
-                    items = top_area.find_elements_by_xpath("div")
+                    top_area = driver.find_element(By.ID,"topArea")
+                    items = top_area.find_elements(By.XPATH,"div")
                     logger.debug(f'items: [{len(items)}]')
                     found = False
                     # for item in items:
                     #     # 未取得マークの確認
-                    #     click_button = item.find_elements_by_xpath("div/p/img")
+                    #     click_button = item.find_elements(By.XPATH,"div/p/img")
                     #     if len(click_button) > 0:
                     #         found = True
                     #         cnt += 1
@@ -125,7 +125,7 @@ class RCardCampaign(RCardBase):
                     #         break
                     logger.debug(f'  - XPATH={xpath_of_unaquired_item(cnt)}')
                     if self.is_element_present(By.XPATH,xpath_of_unaquired_item(cnt)):
-                        item = driver.find_element_by_xpath(xpath_of_unaquired_item(cnt))
+                        item = driver.find_element(By.XPATH,xpath_of_unaquired_item(cnt))
                         if self.is_element_present(By.XPATH,xpath_of_unaquired_symbol(cnt)):
                             # unacquired item is found.
                             found = True

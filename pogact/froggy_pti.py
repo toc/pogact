@@ -115,7 +115,7 @@ class Froggy_pti(Froggy):
             self.save_current_html(stage_name('1'),'html')
             # ------------------------------
             logger.debug(f'  - ｄポイント支払いを選択')
-            pnt_before = driver.find_element_by_css_selector("#__layout > div > div > aside > div > div > div > div.orderForm > div:nth-child(1) > div > div > span").text
+            pnt_before = driver.find_element(By.CSS_SELECTOR,"#__layout > div > div > aside > div > div > div > div.orderForm > div:nth-child(1) > div > div > span").text
             po = (By.ID,"payment-type")
             driver.find_element(*po).click()
             Select(driver.find_element(*po)).select_by_visible_text(u"保有dポイント")
@@ -138,7 +138,7 @@ class Froggy_pti(Froggy):
             logger.debug(f'  -- 実行するボタン押下')
             wk = self.appdict.wkfile(stage_name('_1-order'), "png")
             driver.save_screenshot(str(wk))
-            driver.find_element_by_xpath("//div[@id='__layout']/div/div/aside/div/div/div/div[2]/div[5]/button").click()
+            driver.find_element(By.XPATH,"//div[@id='__layout']/div/div/aside/div/div/div/div[2]/div[5]/button").click()
             logger.debug(f'  -- この内容で注文するボタン押下')
             # 画面展開待ち
             po = (By.XPATH, '//*[@id="__layout"]/div/div/aside/div/div/div/div[2]/div[3]/button[2]')

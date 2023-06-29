@@ -53,25 +53,25 @@ class MailDePoint(RPAbase.MaildepointBase.MaildepointBase):
             driver.get("https://member.pointmail.rakuten.co.jp/box")
             logger.debug(f'  wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"#mailContents > div.leftCol > dl > dd.pointNotGetCount")))')
             wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,".pointNotGetCount")))
-            before_txt = driver.find_element_by_css_selector('.pointNotGetCount').text
+            before_txt = driver.find_element(By.CSS_SELECTOR,'.pointNotGetCount').text
             wk = re.match(re_leading_number,before_txt)
             if wk:
                 num_notget = int(wk.group(1))
-            before_txt += '/' + driver.find_element_by_css_selector('.preGrantPoint').text
+            before_txt += '/' + driver.find_element(By.CSS_SELECTOR,'.preGrantPoint').text
             logger.debug(f"  -- Grant staus before: {before_txt}.")
 
             logger.debug(f"  - Switch to メールボックス")
             # ------------------------------
-            driver.find_element_by_link_text(u"メールボックス").click()
+            driver.find_element(By.LINK_TEXT,u"メールボックス").click()
 
             logger.debug(f"  - Switch to メールボックス/未獲得")
             # ------------------------------
-            driver.find_element_by_link_text(u"未獲得").click()
+            driver.find_element(By.LINK_TEXT,u"未獲得").click()
             logger.debug(f'  -- wait for visibility_of_element_located: CLASS_NAME:mailboxBox')
             wait.until(EC.visibility_of_element_located((By.CLASS_NAME,"mailboxBox")))
 
-            mailbox = driver.find_element_by_class_name("mailboxBox")
-            mails = mailbox.find_elements_by_xpath("ul/li")
+            mailbox = driver.find_element(By.CLASS_NAME,"mailboxBox")
+            mails = mailbox.find_elements(By.XPATH,"ul/li")
             logger.debug(f'  - Number of mails: {len(mails)}.')
 
             logger.debug(f"  - Treat each mails...")
@@ -87,26 +87,26 @@ class MailDePoint(RPAbase.MaildepointBase.MaildepointBase):
             logger.debug(f"  - Try to find the first mail with points.")
             # ------------------------------
             time.sleep(1.5)
-            divs = mail.find_elements_by_xpath("div")
+            divs = mail.find_elements(By.XPATH,"div")
             if len(divs) == 0:
                 logger.debug(f"  -- There are advertisements only.  Exit.")
                 pass
             else:
-                alt_text = divs[0].find_element_by_xpath("img").get_attribute("alt")
-                content = divs[1].find_element_by_xpath("a/p").text
+                alt_text = divs[0].find_element(By.XPATH,"img").get_attribute("alt")
+                content = divs[1].find_element(By.XPATH,"a/p").text
                 logger.debug(f"  -- Found: {alt_text} {content}.")
                 logger.debug(f"  - １件目を開く.")
                 # ------------------------------
-                divs[1].find_element_by_xpath("a").click()
+                divs[1].find_element(By.XPATH,"a").click()
                 while True:
-                    pager = driver.find_elements_by_class_name("pager")
-                    print(driver.find_element_by_xpath(r'//*[@id="mailContents"]/div[2]/div[1]/div[2]/p'))
-                    point_urls = driver.find_elements_by_class_name("point_url")
+                    pager = driver.find_elements(By.CLASS_NAME,"pager")
+                    print(driver.find_element(By.XPATH,r'//*[@id="mailContents"]/div[2]/div[1]/div[2]/p'))
+                    point_urls = driver.find_elements(By.CLASS_NAME,"point_url")
                     point_urls_num = len(point_urls)
                     if point_urls_num > 0:
                         logger.debug(f"  -- ポイント対象URL(全{point_urls_num}件の先頭のみ)をクリック.")
                         # ------------------------------
-                        point_url = point_urls[0].find_element_by_xpath("a")
+                        point_url = point_urls[0].find_element(By.XPATH,"a")
                         href = point_url.get_attribute("href")
                         logger.debug(f'  --- click -> {href}')
                         results.append(href)
@@ -123,7 +123,7 @@ class MailDePoint(RPAbase.MaildepointBase.MaildepointBase):
 
                     logger.debug(f"  -- 次のポイント対象メールを開く.")
                     # ------------------------------
-                    pager_next = pager[0].find_elements_by_xpath(r'ul/li[2]/a')
+                    pager_next = pager[0].find_elements(By.XPATH,r'ul/li[2]/a')
                     if len(pager_next) > 0:
                         logger.debug(f"  --- 次ページボタン押下.")
                         # ------------------------------
@@ -133,8 +133,8 @@ class MailDePoint(RPAbase.MaildepointBase.MaildepointBase):
                         logger.debug(f"  -- 次ページボタン無効＝最終ページ処理完了.")
                         # ------------------------------
                         break
-            after_txt = driver.find_element_by_css_selector('.pointNotGetCount').text
-            after_txt += '/' + driver.find_element_by_css_selector('.preGrantPoint').text
+            after_txt = driver.find_element(By.CSS_SELECTOR,'.pointNotGetCount').text
+            after_txt += '/' + driver.find_element(By.CSS_SELECTOR,'.preGrantPoint').text
             logger.debug(f"  -- Grant staus after: {after_txt}.")
 
         except Exception as e:
@@ -164,13 +164,13 @@ class MailDePoint(RPAbase.MaildepointBase.MaildepointBase):
         point_contents = []
         try:
             driver.get("https://member.pointmail.rakuten.co.jp/box")
-            driver.find_element_by_link_text(u"メールボックス").click()
-            driver.find_element_by_link_text("未読").click()
+            driver.find_element(By.LINK_TEXT,u"メールボックス").click()
+            driver.find_element(By.LINK_TEXT,"未読").click()
             logger.debug(f'  wait for visibility_of_element_located: CLASS_NAME:mailboxBox')
             wait.until(EC.visibility_of_element_located((By.CLASS_NAME,"mailboxBox")))
 
-            mailbox = driver.find_element_by_class_name("mailboxBox")
-            mails = mailbox.find_elements_by_xpath("ul/li")
+            mailbox = driver.find_element(By.CLASS_NAME,"mailboxBox")
+            mails = mailbox.find_elements(By.XPATH,"ul/li")
             logger.debug(f'  Found {len(mails)} mail(s) in mailbox.')
             for mail in mails:
                 class_value = mail.get_attribute("class")
@@ -180,13 +180,13 @@ class MailDePoint(RPAbase.MaildepointBase.MaildepointBase):
                     continue
                 else:
                     # 広告以外の未読メールのはず
-                    divs = mail.find_elements_by_xpath("div")
+                    divs = mail.find_elements(By.XPATH,"div")
                     if len(divs) == 0:
                         # リンク情報なしのためスキップ。おそらく未読メール残が０件の状態。
                         logger.debug(f'  - メール本体が存在しない: おそらく未読メールなし状態')
                         continue
-                    subj = divs[1].find_element_by_xpath("a/p").text
-                    href = divs[1].find_element_by_xpath("a").get_attribute(r'href')
+                    subj = divs[1].find_element(By.XPATH,"a/p").text
+                    href = divs[1].find_element(By.XPATH,"a").get_attribute(r'href')
                     wk = [class_value, subj, href]
                     logger.debug(f'  - Found target: {wk}')
                     point_contents.append(wk)
@@ -232,7 +232,7 @@ class MailDePoint(RPAbase.MaildepointBase.MaildepointBase):
 
                 logger.debug(f" Open url: {url}")
                 driver.get(url)
-                links = driver.find_elements_by_xpath('//*[@id="mailFrame"]//*/a')
+                links = driver.find_elements(By.XPATH,'//*[@id="mailFrame"]//*/a')
                 logger.debug(f" Collected links in mail body: {len(links)}")
                 if len(links) > 0:
                     urls = []

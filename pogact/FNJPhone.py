@@ -159,22 +159,22 @@ class FNJPhone(RPAbase.FNJbase.FNJbase):
                 if self.pilot_login(user):
                     logger.debug(' 取引ページに移動')
                     # ------------------------------
-                    driver.find_element_by_link_text(u"取引内容の確認").click()
+                    driver.find_element(By.LINK_TEXT,u"取引内容の確認").click()
 
                     logger.debug(' 年月を指定')
                     # ------------------------------
-                    driver.find_element_by_id("TransactionBody1_Ddl_Year").click()
-                    Select(driver.find_element_by_id("TransactionBody1_Ddl_Year")).select_by_visible_text(str(param['year']))
-                    driver.find_element_by_id("TransactionBody1_Ddl_Month").click()
-                    Select(driver.find_element_by_id("TransactionBody1_Ddl_Month")).select_by_visible_text(str(param['month']))
-                    driver.find_element_by_id("TransactionBody1_Ddl_Month").click()
-                    driver.find_element_by_id("TransactionBody1_Btn_Search").click()
+                    driver.find_element(By.ID,"TransactionBody1_Ddl_Year").click()
+                    Select(driver.find_element(By.ID,"TransactionBody1_Ddl_Year")).select_by_visible_text(str(param['year']))
+                    driver.find_element(By.ID,"TransactionBody1_Ddl_Month").click()
+                    Select(driver.find_element(By.ID,"TransactionBody1_Ddl_Month")).select_by_visible_text(str(param['month']))
+                    driver.find_element(By.ID,"TransactionBody1_Ddl_Month").click()
+                    driver.find_element(By.ID,"TransactionBody1_Btn_Search").click()
 
                     logger.debug(' ハードコピーを採取')
                     # ------------------------------
                     wk = str(self.appdict.wkfile(f"-{yyyymm}", "png"))
                     driver.save_screenshot(wk)
-                    table = driver.find_element_by_xpath(r'//*[@id="TransactionBody1_PanelList"]/table[2]/tbody/tr/td/table')
+                    table = driver.find_element(By.XPATH,r'//*[@id="TransactionBody1_PanelList"]/table[2]/tbody/tr/td/table')
 
                     logger.debug(' 請求項部分をhtmlで切り出して保存')
                     # ------------------------------

@@ -19,17 +19,17 @@ class MineoBase(RPAbase.RPAbase.RPAbase):
 
         logger.debug('  wait for visibility_of_element_located((By.ID, "eoID")')
         wait.until(EC.visibility_of_element_located((By.ID, "eoID")))
-        elm = driver.find_element_by_id("eoID")
+        elm = driver.find_element(By.ID,"eoID")
         elm.clear()
         elm.send_keys(account['id'])
-        driver.find_element_by_id("btnSubmit").click()
+        driver.find_element(By.ID,"btnSubmit").click()
 
         logger.debug('  wait for visibility_of_element_located((By.ID, "password")')
         wait.until(EC.visibility_of_element_located((By.ID, "password")))
-        elm = driver.find_element_by_id("password")
+        elm = driver.find_element(By.ID,"password")
         elm.clear()
         elm.send_keys(account['pw'])
-        driver.find_element_by_id("btnSubmit").click()
+        driver.find_element(By.ID,"btnSubmit").click()
 
         ###
         logger.debug('  wait for link_text "ログアウト"')
@@ -52,7 +52,7 @@ class MineoBase(RPAbase.RPAbase.RPAbase):
         logger.debug(f"  -- LINK_TEXT[ログアウト] exists? {result}")
         if result is True:
             logger.debug(f"  -- Try to click ログアウト link.")
-            driver.find_element_by_link_text(u"ログアウト").click()
+            driver.find_element(By.LINK_TEXT,u"ログアウト").click()
         else:
             logger.debug(f"  -- Do nothing and exit.")
         return result

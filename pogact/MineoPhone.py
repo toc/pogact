@@ -147,7 +147,7 @@ class MineoPhone(RPAbase.MineoBase.MineoBase):
                 if self.pilot_login(user):
                     logger.debug(' ご利用料金ページに移動')
                     # ------------------------------
-                    # driver.find_element_by_link_text(u"ご利用料金").click()
+                    # driver.find_element(By.LINK_TEXT,u"ご利用料金").click()
                     driver.get("https://mypage.eonet.jp/Bill/details")
 
                     # driver.execute_script("javascript:nextMyPageModal();")
@@ -169,12 +169,12 @@ class MineoPhone(RPAbase.MineoBase.MineoBase):
                     mm = format(target_day.month, "02d")
                     select_item = f'{yyyy}年{mm}月ご利用分'
                     logger.debug(f'  - taget: {select_item}')
-                    driver.find_element_by_id("billingYm").click()
-                    Select(driver.find_element_by_id("billingYm")).select_by_visible_text(select_item)
+                    driver.find_element(By.ID,"billingYm").click()
+                    Select(driver.find_element(By.ID,"billingYm")).select_by_visible_text(select_item)
 
                     logger.debug(f'  - wait for visibility_of_element_located((By.ID,"pdfDownload"))')
                     wait.until(EC.element_to_be_clickable((By.ID,"pdfDownload")))
-                    driver.find_element_by_id("pdfDownload").click()
+                    driver.find_element(By.ID,"pdfDownload").click()
                     time.sleep(12)           # ダウンロード完了待ち
                     filepath = self.getLatestDownloadedFileName()
                     if filepath is not None:

@@ -19,15 +19,15 @@ class CyberhomeBase(RPAbase.RPAUserService.RPAUserService):
         driver.get("https://wmail.cyberhome.ne.jp/login/")
         logger.debug('  wait for (By.ID, u"username")')
         wait.until(EC.visibility_of_element_located((By.ID, "username")))
-        u = driver.find_element_by_id("username")
+        u = driver.find_element(By.ID,"username")
         u.clear()
         u.send_keys(account['id'])
-        p = driver.find_element_by_id('password')
+        p = driver.find_element(By.ID,'password')
         p.clear()
         p.send_keys(account['pw'])
 
         logger.debug('  SUBMIT login.')
-        driver.find_element_by_xpath(u"//img[@alt='ログイン']").click()
+        driver.find_element(By.XPATH,u"//img[@alt='ログイン']").click()
         logger.debug(f' --wait.until element_to_be_clickable((By.ID,r"menu_mail_inbox_unread"))')
         wait.until(EC.element_to_be_clickable((By.ID,r"menu_mail_inbox_unread")))
         

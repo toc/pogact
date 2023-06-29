@@ -105,20 +105,20 @@ class RakutenLottery(RakutenBase):
                     if page['url'] == 'https://pointmall.rakuten.co.jp/':
                         driver.get(page['url'])
                         time.sleep(1)
-                        driver.find_element_by_xpath('//*[@id="side"]/div[1]/ul/li/div[1]/a/img').click()
-                        driver.find_element_by_xpath('//*[@id="side"]/div[1]/ul/li/div[2]/div/div[1]/div[6]').click()
+                        driver.find_element(By.XPATH,'//*[@id="side"]/div[1]/ul/li/div[1]/a/img').click()
+                        driver.find_element(By.XPATH,'//*[@id="side"]/div[1]/ul/li/div[2]/div/div[1]/div[6]').click()
                         time.sleep(14)
 
                     elif page['url'] == 'https://point.rakuten.co.jp/doc/lottery/lucky/':
                         driver.get(page['url'])
                         time.sleep(2)
-                        driver.find_element_by_xpath('//*[@id="cp_btn_start"]/a/img').click()
+                        driver.find_element(By.XPATH,'//*[@id="cp_btn_start"]/a/img').click()
                         time.sleep(14)
 
                     else:
                         driver.get(page['url'])
                         time.sleep(1)
-                        driver.find_element_by_xpath('//*[@id="entry"]').click()
+                        driver.find_element(By.XPATH,'//*[@id="entry"]').click()
                         time.sleep(14)
 
                 except (NoSuchElementException, ElementNotInteractableException):

@@ -23,13 +23,13 @@ class TimesCarShare(RPAbase.RPAbase.RPAbase):
         logger.debug('  wait for (By.ID, r"linkButton")')
         wait.until(EC.element_to_be_clickable((By.ID, r'tpLogin')))
 
-        driver.find_element_by_id("cardNo1").clear()
-        driver.find_element_by_id("cardNo1").send_keys(account['id1'])
-        driver.find_element_by_id("cardNo2").clear()
-        driver.find_element_by_id("cardNo2").send_keys(account['id2'])
-        driver.find_element_by_id("tpPassword").clear()
-        driver.find_element_by_id("tpPassword").send_keys(account['pw'])
-        driver.find_element_by_id("tpLogin").click()
+        driver.find_element(By.ID,"cardNo1").clear()
+        driver.find_element(By.ID,"cardNo1").send_keys(account['id1'])
+        driver.find_element(By.ID,"cardNo2").clear()
+        driver.find_element(By.ID,"cardNo2").send_keys(account['id2'])
+        driver.find_element(By.ID,"tpPassword").clear()
+        driver.find_element(By.ID,"tpPassword").send_keys(account['pw'])
+        driver.find_element(By.ID,"tpLogin").click()
         ###
         logger.debug('  wait for link_text "ログアウト"')
         wait.until(
@@ -51,7 +51,7 @@ class TimesCarShare(RPAbase.RPAbase.RPAbase):
         logger.debug(f"  -- LINK_TEXT[ログアウト] exists? {result}")
         if result is True:
             logger.debug(f"  -- Try to click ログアウト link.")
-            driver.find_element_by_link_text(u"ログアウト").click()
+            driver.find_element(By.LINK_TEXT,u"ログアウト").click()
         else:
             logger.debug(f"  -- Do nothing and exit.")
         return result

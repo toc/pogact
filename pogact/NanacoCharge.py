@@ -57,9 +57,9 @@ class NanacoCharge(RPAbase.nanaco.Nanaco):
             logger.debug(f'  wait for visibility_of_element_located: (By.ID,"memberInfoFull")')
             wait.until(EC.visibility_of_element_located((By.ID,"memberInfoFull")))
             money_info = driver.find_element(By.ID,"memberInfoFull")
-            detail_box = money_info.find_elements_by_class_name("detailBox")
+            detail_box = money_info.find_elements(By.CLASS_NAME,"detailBox")
             for detail in detail_box:
-                divs = detail.find_elements_by_xpath("div")
+                divs = detail.find_elements(By.XPATH,"div")
                 logger.debug(f'  □{divs[0].text}')  # title
                 logger.debug(f'  -- {"/".join(divs[1].text.splitlines())}')  # electric money
                 logger.debug(f'  -- {"/".join(divs[2].text.splitlines())}')  # nanaco points

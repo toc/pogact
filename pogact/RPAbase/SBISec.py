@@ -18,12 +18,12 @@ class SBISec(RPAUserService):
         # time.sleep(1)
         # wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "a.login-link"))).click()
         wait.until(EC.visibility_of_element_located((By.ID, r'link02')))
-        driver.find_element_by_name("user_id").clear()
-        driver.find_element_by_name("user_id").send_keys(account['id'])
-        driver.find_element_by_name("user_password").clear()
-        driver.find_element_by_name("user_password").send_keys(account['pw'])
+        driver.find_element(By.NAME,"user_id").clear()
+        driver.find_element(By.NAME,"user_id").send_keys(account['id'])
+        driver.find_element(By.NAME,"user_password").clear()
+        driver.find_element(By.NAME,"user_password").send_keys(account['pw'])
         logger.debug("  -- Click SUBMIT.")
-        driver.find_element_by_name("ACT_login").click()
+        driver.find_element(By.NAME,"ACT_login").click()
         #
         time.sleep(1.5)
         wait.until(EC.visibility_of_element_located((By.TAG_NAME, 'body')))
@@ -44,7 +44,7 @@ class SBISec(RPAUserService):
         logger.debug(f'  -- XPAHT[//*[@id="logoutM"]/a] exists? {result}')
         if result is True:
             logger.debug(f"  -- Try to click ログアウト link.")
-            driver.find_element_by_xpath(r'//*[@id="logoutM"]/a').click()
+            driver.find_element(By.XPATH,r'//*[@id="logoutM"]/a').click()
         else:
             logger.debug(f"  -- Do nothing and exit.")
         return result

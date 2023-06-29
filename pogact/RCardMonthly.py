@@ -55,12 +55,12 @@ class RCardMonthly(RCardBase):
             # wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#top > div.ghead.rce-ghead > div.service-bar")))
 
             # get　invoice summary
-            # card_info = driver.find_element_by_css_selector("#top > div.rce-l-wrap.is-grey.rce-main > div > div.rce-billInfo.rf-card.rf-card-square.rf-card-edge > div.rce-contents")
-            # summary = card_info.find_element_by_css_selector("div.rce-columns > div.rce-columns-cell.rce-billInfo-month")
-            # bills.append(summary.find_element_by_css_selector("h3.rf-title-collar.rce-title-belt-first").text)
-            # bills.append(summary.find_element_by_css_selector("table:nth-child(2) > tbody > tr:nth-child(1) > td").text)
-            # balance = summary.find_element_by_id("parent-balance")
-            # divs = balance.find_elements_by_xpath("div")
+            # card_info = driver.find_element(By.CSS_SELECTOR,"#top > div.rce-l-wrap.is-grey.rce-main > div > div.rce-billInfo.rf-card.rf-card-square.rf-card-edge > div.rce-contents")
+            # summary = card_info.find_element(By.CSS_SELECTOR,"div.rce-columns > div.rce-columns-cell.rce-billInfo-month")
+            # bills.append(summary.find_element(By.CSS_SELECTOR,"h3.rf-title-collar.rce-title-belt-first").text)
+            # bills.append(summary.find_element(By.CSS_SELECTOR,"table:nth-child(2) > tbody > tr:nth-child(1) > td").text)
+            # balance = summary.find_element(By.ID,"parent-balance")
+            # divs = balance.find_elements(By.XPATH,"div")
             # for div in divs:
             #     bills.append(div.text)
 

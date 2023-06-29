@@ -341,9 +341,9 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         # ==============================
         wait.until(EC.visibility_of_element_located((By.ID, "menu_mail_inbox_unread")))
         wait.until(EC.element_to_be_clickable((By.ID, "menu_mail_inbox_unread")))
-        driver.find_element_by_id("menu_mail_inbox_unread").click()
-        mail_table = driver.find_element_by_id(r"mail_list_tbody")
-        mails = mail_table.find_elements_by_tag_name(r"tr")
+        driver.find_element(By.ID,"menu_mail_inbox_unread").click()
+        mail_table = driver.find_element(By.ID,r"mail_list_tbody")
+        mails = mail_table.find_elements(By.TAG_NAME,r"tr")
 		#
         self.appdict.data['log'][user['name']].append(f'Mails: {len(mails)}')
         found_mail = []
@@ -351,13 +351,13 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         for mail in mails:
             logger.debug('- 対象メールを確認(件名を取得)')
             # ------------------------------
-            targ_subject = mail.find_element_by_xpath('td[4]/div/span[1]').text
+            targ_subject = mail.find_element(By.XPATH,'td[4]/div/span[1]').text
             logger.debug(f'  --TARGET:{targ_subject}')
 
             logger.debug('- 対象メールを選択し、画像表示モードに変更')
             # ------------------------------
-            mail.find_element_by_xpath('td[4]/div/span[1]').click()
-            body = driver.find_element_by_id('home_content_mail_body')
+            mail.find_element(By.XPATH,'td[4]/div/span[1]').click()
+            body = driver.find_element(By.ID,'home_content_mail_body')
             for i in range(6):              # Wait mail header update until 3 second.
                 time.sleep(0.5)
                 mbi_subject = body.find_element(By.ID, "mbi_subject").text
@@ -366,7 +366,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
             mbi_from = body.find_element(By.ID, "mbi_from").text
             logger.debug(f'-- >{mbi_from}<')
             
-            img_toggle = body.find_elements_by_link_text('画像を表示')
+            img_toggle = body.find_elements(By.LINK_TEXT,'画像を表示')
             if len(img_toggle) > 0:
                 img_toggle[0].click()
             else:
@@ -412,7 +412,7 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         # ------------------------------
         ## mailとmails[-1]はどっちが安全？0件のときが危ない？
         if len(mails) > 0:
-            mails[-1].find_element_by_xpath('td[1]/div/input').click()
+            mails[-1].find_element(By.XPATH,'td[1]/div/input').click()
 
         self.appdict.data['log'][user['name']].append(f'-> {len(found_link)} link(s) in {len(found_mail)} mail(s).')
 
@@ -423,18 +423,18 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
             logger.debug(f'- 対象メールを選択(チェック付与) (#found_mail={num_found})')
             # ------------------------------
             for m in found_mail:
-                m.find_element_by_xpath('td[1]/div/input').click()
+                m.find_element(By.XPATH,'td[1]/div/input').click()
             time.sleep(0.5)
             logger.debug('- チェック済みメールを削除')
             # ------------------------------
-            driver.find_element_by_xpath(       # メニュー展開
+            driver.find_element(By.XPATH,       # メニュー展開
                 '//*[@id="ml_plus"]/div[4]/div/span'
             ).click()
-            driver.find_element_by_xpath(       # チェック済みメールを削除
+            driver.find_element(By.XPATH,       # チェック済みメールを削除
                 "//li[@onclick='return HomeFn.e_dropdown_mail_delete_checked();']"
             ).click()
             time.sleep(1)
-            driver.find_element_by_id(          # 削除確認ダイアログを確認
+            driver.find_element(By.ID,          # 削除確認ダイアログを確認
                 "mail_delete_dialog_ok_button"
             ).click()
             time.sleep(1)

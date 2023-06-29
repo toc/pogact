@@ -79,12 +79,12 @@ class JPJrNISA(RPAbase.JPBankBase.JPBankBase):
         result_wk = []
         # 現金残高
         if self.is_element_present(By.LINK_TEXT, "ダイレクトトップ"):
-            driver.find_element_by_link_text("ダイレクトトップ").click()
+            driver.find_element(By.LINK_TEXT,"ダイレクトトップ").click()
             logger.debug('  wait for (By.ID, "strMain")')
             wait.until(EC.visibility_of_element_located((By.ID, 'strMain')))
             # 本体の処理
-            title = driver.find_element_by_css_selector("#strMain > div:nth-child(3) > h2 > span").text
-            balance = driver.find_element_by_css_selector("#strMain > div:nth-child(3) > div > div.col.w55 > p").text
+            title = driver.find_element(By.CSS_SELECTOR,"#strMain > div:nth-child(3) > h2 > span").text
+            balance = driver.find_element(By.CSS_SELECTOR,"#strMain > div:nth-child(3) > div > div.col.w55 > p").text
             wk = f'{title}/{balance}'
             logger.info(f' - {wk}')
             result_wk.append(f'{wk}')
@@ -93,7 +93,7 @@ class JPJrNISA(RPAbase.JPBankBase.JPBankBase):
 
         # 積立設定
         if self.is_element_present(By.LINK_TEXT, "投資信託"):
-            driver.find_element_by_link_text("投資信託").click()
+            driver.find_element(By.LINK_TEXT,"投資信託").click()
 
             # 注意喚起ページが挿入されていればスキップする
             time.sleep(0.5)
@@ -108,7 +108,7 @@ class JPJrNISA(RPAbase.JPBankBase.JPBankBase):
                     driver.find_element(*po).click()
 
             if self.is_element_present(By.LINK_TEXT, "お申し込み内容の照会・変更"):
-                driver.find_element_by_link_text("お申し込み内容の照会・変更").click()
+                driver.find_element(By.LINK_TEXT,"お申し込み内容の照会・変更").click()
                 pageobj = (By.XPATH, '//*[@id="mainContents"]/form[1]/table')
                 logger.debug(f'    wait for {pageobj}')
                 wait.until(EC.visibility_of_element_located(pageobj))
@@ -118,11 +118,11 @@ class JPJrNISA(RPAbase.JPBankBase.JPBankBase):
                 i = 3                   # i=0,1,2はヘッダ定義のためスキップ
                 while i < trs_cnt:
                     # １行目：ファンド名
-                    title = trs[i].find_element_by_xpath('td[2]').text
+                    title = trs[i].find_element(By.XPATH,'td[2]').text
                     # ２行目：積立日、金額
                     i += 1
-                    duedate = trs[i].find_element_by_xpath('td[1]').text
-                    payment = trs[i].find_element_by_xpath('td[2]').text
+                    duedate = trs[i].find_element(By.XPATH,'td[1]').text
+                    payment = trs[i].find_element(By.XPATH,'td[2]').text
                     # ３行目：情報なし
                     i += 1
                     # 情報まとめ
@@ -134,7 +134,7 @@ class JPJrNISA(RPAbase.JPBankBase.JPBankBase):
                     i += 1
 
                 # 積立実績
-                driver.find_element_by_link_text("運用損益照会").click()
+                driver.find_element(By.LINK_TEXT,"運用損益照会").click()
                 pageobj = (By.XPATH, '//*[@id="mainContents"]/form/table[2]')
                 logger.debug(f'    wait for {pageobj}')
                 wait.until(EC.visibility_of_element_located(pageobj))
@@ -142,8 +142,8 @@ class JPJrNISA(RPAbase.JPBankBase.JPBankBase):
                 trs = table.find_elements(By.XPATH, 'tbody/tr')
                 trs_cnt = len(trs)
                 # 運用トータル
-                hyouka = trs[trs_cnt-1].find_element_by_xpath('td[4]').text
-                sonneki = trs[trs_cnt-1].find_element_by_xpath('td[7]').text
+                hyouka = trs[trs_cnt-1].find_element(By.XPATH,'td[4]').text
+                sonneki = trs[trs_cnt-1].find_element(By.XPATH,'td[7]').text
                 wk = f'運用状況: 評価額={hyouka}/損益={sonneki}'
                 logger.info(f' - {wk}')
                 result_wk.append(f'{wk}')
@@ -151,11 +151,11 @@ class JPJrNISA(RPAbase.JPBankBase.JPBankBase):
                 i = 2                   # i=0,1はヘッダ定義のためスキップ
                 while i < trs_cnt - 1:
                     # １行目：ファンド名
-                    title = trs[i].find_element_by_xpath('td[2]').text
+                    title = trs[i].find_element(By.XPATH,'td[2]').text
                     # ２行目：積立日、金額
                     i += 1
-                    hyouka = trs[i].find_element_by_xpath('td[3]').text
-                    sonneki = trs[i].find_element_by_xpath('td[6]').text
+                    hyouka = trs[i].find_element(By.XPATH,'td[3]').text
+                    sonneki = trs[i].find_element(By.XPATH,'td[6]').text
                     # 情報まとめ
                     wk = f'評価額={hyouka}/損益={sonneki}'
                     logger.info(f'   - {title}:{wk}')

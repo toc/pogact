@@ -25,7 +25,7 @@ class RakutenBase(RPAUserService):
         ####
         logger.debug('  wait for (By.LINK_TEXT,u"ログイン")')
         wait.until(EC.element_to_be_clickable((By.LINK_TEXT, u"ログイン")))
-        driver.find_element_by_link_text(u"ログイン").click()
+        driver.find_element(By.LINK_TEXT,u"ログイン").click()
         #
         po = (By.ID, "scrollingLayer")
         logger.debug(f'  wait for {po}; ログイン画面')

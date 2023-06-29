@@ -71,12 +71,12 @@ class TCSReceipt(RPAbase.TimesCarShare.TimesCarShare):
             # 表示待ち: 「ご利用履歴・明細」
             logger.debug('  wait for (By.ID, r"isExistsPastUse")')
             wait.until(EC.element_to_be_clickable((By.ID, r'isExistsPastUse')))
-            rows = driver.find_elements_by_xpath(r'//*[@id="isExistsPastUse"]/table/tbody/tr')
+            rows = driver.find_elements(By.XPATH,r'//*[@id="isExistsPastUse"]/table/tbody/tr')
             for row in rows:
                 yymm = ""
                 link = ""
                 logger.debug(f'  -- [{row.text}]')
-                cols = row.find_elements_by_xpath("td")
+                cols = row.find_elements(By.XPATH,"td")
                 if len(cols) == 0:
                     logger.debug('   !! it must be table header(th) record.  Skip.')
                     continue
@@ -84,7 +84,7 @@ class TCSReceipt(RPAbase.TimesCarShare.TimesCarShare):
                 result_cnt += 1
                 yymm = cols[0].text
                 logger.debug(f'  -- Found: {yymm}.')
-                links = cols[6].find_elements_by_xpath("a")
+                links = cols[6].find_elements(By.XPATH,"a")
                 if len(links) > 0:
                     link = links[0].get_attribute(r'href')
                 result[yymm] = link
@@ -113,7 +113,7 @@ class TCSReceipt(RPAbase.TimesCarShare.TimesCarShare):
                 driver.get(link)
                 # 月間利用証明を取得
                 logger.info(f'  --- Try to get monthly certificate at {yymm}')
-                tmpobj = driver.find_element_by_id(r'goResultDetailPdf')
+                tmpobj = driver.find_element(By.ID,r'goResultDetailPdf')
                 tmplink = tmpobj.get_attribute(r'href')
                 logger.debug(f'  ---- Try to get {tmplink}')
                 driver.get(tmplink)
@@ -121,8 +121,8 @@ class TCSReceipt(RPAbase.TimesCarShare.TimesCarShare):
                 # 個別利用証明を取得
                 logger.info(f'  --- Try to get each certificates at {yymm}')
                 ##　実績テーブル中の利用証明書リンクを取得
-                tab = driver.find_element_by_xpath(r'//*[@id="d_past"]/table[1]')
-                evidences = tab.find_elements_by_link_text('ご利用証明書ダウンロード')
+                tab = driver.find_element(By.XPATH,r'//*[@id="d_past"]/table[1]')
+                evidences = tab.find_elements(By.LINK_TEXT,'ご利用証明書ダウンロード')
                 ## 利用証明書リンクからPDFダウンロード
                 for evidence in evidences:
                     tmplink = evidence.get_attribute("href")
