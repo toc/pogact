@@ -3,12 +3,9 @@
 import datetime
 from dateutil.relativedelta import relativedelta
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import NoAlertPresentException
-import yaml
+from selenium.common.exceptions import (TimeoutException,NoSuchElementException)
 import pandas as pd
 import logutils.AppDict
 import RPAbase.FNJbase

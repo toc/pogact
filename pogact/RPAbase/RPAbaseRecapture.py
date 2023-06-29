@@ -1,24 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
-import datetime
-import time
-import re
 from logging import DEBUG, INFO
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import NoAlertPresentException
-from selenium.common.exceptions import SessionNotCreatedException
-from selenium.common.exceptions import WebDriverException
-from webdrivermanager import ChromeDriverManager
-import yaml
-from logutils.logger import Logger
-import logutils.mailreporter
 import RPAbase.RPAbase
 
 class RPAbaseRecapture(RPAbase.RPAbase.RPAbase):

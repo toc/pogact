@@ -1,18 +1,12 @@
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementNotInteractableException
-from selenium.common.exceptions import NoAlertPresentException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from tqdm import tqdm
 from datetime import datetime
-import unittest, time, re
-import RPAbase.RPAbase
+import time, re
 from RPAbase.RakutenBase import RakutenBase
 from logutils.AppDict import AppDict
 

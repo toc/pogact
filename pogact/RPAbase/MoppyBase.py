@@ -1,7 +1,8 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
 import time
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from RPAbase.RPAUserService import RPAUserService
 
 

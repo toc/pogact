@@ -2,17 +2,12 @@
 import time
 import datetime
 import re
-import yaml
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
-from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import NoAlertPresentException
 from logging import DEBUG, INFO    # , WARNING, ERROR, CRITICAL
 from bs4 import BeautifulSoup
-import lxml
 import logutils.AppDict
 from RPAbase.AOLbase import AOLbase
 import RPAbase.ECnaviBase

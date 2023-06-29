@@ -1,8 +1,9 @@
-import time
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from RPAbase.RPAUserService import RPAUserService
+import time
 
 
 class HapitasBase(RPAUserService):

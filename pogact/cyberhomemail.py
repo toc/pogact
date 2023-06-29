@@ -1,19 +1,12 @@
 # -*- coding: utf-8 -*-
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import NoAlertPresentException
 from selenium.webdriver.support import expected_conditions as EC
 import time, re
 from bs4 import BeautifulSoup
-import lxml
 import yaml
 import logutils.AppDict
 import RPAbase.CyberhomeBase
-# import RPAbase.RakutenBase
 from RPAbase.InfoseekBase import RakutenBase
 import RPAbase.MoppyBase
 import RPAbase.HapitasBase

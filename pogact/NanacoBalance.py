@@ -1,14 +1,7 @@
 # -*- coding: utf-8 -*-
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import TimeoutException
-import sys
-import time
-import re
-import yaml
 import RPAbase.nanaco
 from logutils.AppDict import AppDict
 

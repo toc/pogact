@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 import time
 import datetime
-import yaml
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import NoAlertPresentException
 from logging import DEBUG, INFO    # , WARNING, ERROR, CRITICAL
 import logutils.AppDict
 from RPAbase.RkeibaBase import RkeibaBase

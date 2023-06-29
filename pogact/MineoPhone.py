@@ -1,22 +1,15 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-# import sys
 import time
 import os
-# import re
-# from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, NoAlertPresentException
-# from webdrivermanager import ChromeDriverManager
-import yaml
 import datetime
 from dateutil.relativedelta import relativedelta
 from pathlib import Path
-# import pandas as pd
 import RPAbase.MineoBase
 import logutils.AppDict
 import logutils.mailreporter

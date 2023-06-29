@@ -1,22 +1,9 @@
 # -*- coding: utf-8 -*-
-# from selenium import webdriver
-# from selenium.webdriver.common.by import By
-# from selenium.webdriver.common.keys import Keys
-# from selenium.webdriver.support.ui import Select
-# from selenium.common.exceptions import NoSuchElementException
-# from selenium.common.exceptions import NoAlertPresentException
-# import unittest, time, re
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import NoAlertPresentException
 from selenium.webdriver.chrome.options import Options
-# # from webdrivermanager import ChromeDriverManager
-import time, re
+import time
 from datetime import datetime
 from RPAbase.Froggy import Froggy
 from logutils.AppDict import AppDict
