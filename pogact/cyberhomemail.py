@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import ElementClickInterceptedException
 import time, re
 from bs4 import BeautifulSoup
 import yaml
@@ -12,6 +14,7 @@ import RPAbase.MoppyBase
 import RPAbase.HapitasBase
 import RPAbase.SBIgroupBase
 import RPAbase.PointIncomeBase
+import RPAbase.PointStadiumBase
 
 class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
     """
@@ -83,6 +86,10 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
         wk = RPAbase.PointIncomeBase.PointIncomeBase()
         wk.silent_setup(driver, wait, self.logger)
         self.appdict.data['sites'].append(['PointIncome',wk])
+        ### PointStadium
+        wk = RPAbase.PointStadiumBase.PointStadiumBase()
+        wk.silent_setup(driver, wait, self.logger)
+        self.appdict.data['sites'].append(['PointStadium',wk])
         ### Rakuten
         # wk = RPAbase.RakutenBase.RakutenBase()
         wk = RakutenBase()
@@ -154,8 +161,27 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
                     driver.get(link)
                     logger.debug(f'  --wait.until visibility_of_element_located((By.TAG_NAME,"body"))')
                     wait.until(EC.visibility_of_element_located((By.TAG_NAME,'body')))
-                    time.sleep(1)
-                    logger.info(f'  - SUCCESS: {link}')
+                    if sitename == 'PointStadium':
+                        clicked = False
+                        for i in range(10):
+                            try:
+                                wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR,'.vbtn')))
+                                driver.find_element(By.CSS_SELECTOR,'.vbtn').click()
+                                clicked = True
+                                time.sleep(1)
+                                break
+                            except ElementClickInterceptedException as e:
+                                driver.find_element(By.TAG_NAME,"body").send_keys(Keys.PAGE_DOWN)
+                                pass
+                        # 作業用Windowを閉じて、最新のWindowに移動
+                        if clicked:
+                            driver.switch_to.window(driver.window_handles[-1])
+                            driver.close()
+                            driver.switch_to.window(driver.window_handles[-1])
+                            time.sleep(1)
+                            logger.info(f'  - SUCCESS: {link}')
+                        else:
+                            logger.error(f'  -- Cannot click .vbtn @ PointStadium.')
                 except Exception as e:
                     logger.warn(f'  - FAIL(SKIP): {link}')
                     # ------------------------------
@@ -195,6 +221,35 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
                 logger.debug(f'--FOUND:a href={wk}')
 
         # URLリストを返却、空リストなら対象なし(Moppyメール外？)
+        logger.debug(f'    解析終了: 該当URL数[{len(links)}]')
+        return links
+
+
+    def pilot_internal_pickup_url_pointstadium(self, subj, fr):
+        """
+        PointStagium用広告操作
+        - PointStagiumは広告リンク(STEP2)をjavascriptで制御。
+        - 広告リンクを保存できないためこのタイミングで広告もクリックする。
+        """
+        driver = self.driver
+        logger = self.logger
+
+        logger.debug('  - PointStadiumを想定してメール本文を解析')
+        # ------------------------------
+        links = []
+        # num_wins = len(driver.window_handles) 
+        soup = BeautifulSoup(driver.page_source,"lxml")
+        lists = soup.select("a")
+        regex = re.compile(r'^https://www.point-stadium.com/mclick.asp\?pid=toc.tanaka&\S+$', re.A)
+        for l in lists:
+            wk = l.get("href")
+            if regex.match(wk):
+                # 広告メール(STEP1)発見
+                logger.debug(f'   --- 広告STEP1候補>{wk}<')
+                links.append(wk)
+                logger.debug(f'   --- 広告STEP1は1件目のみを対象とする(メールポイントは１つ目オンリーのハズ？？)')
+                break
+        # URLリストを返却、空リストなら対象なし
         logger.debug(f'    解析終了: 該当URL数[{len(links)}]')
         return links
 
@@ -381,6 +436,10 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
                 # logger.debug('  - it seems PointIncome\'s mail.')
                 pickup_type = 'PointIncome'
                 links = self.pilot_internal_pickup_url_pointincome(mbi_subject, mbi_from)
+            elif re.search(r'info-stadium@point-stadium.com>$', mbi_from):
+                # logger.debug('  - it seems PointStadium\'s mail.')
+                pickup_type = 'PointStadium'
+                links = self.pilot_internal_pickup_url_pointstadium(mbi_subject, mbi_from)
             else:
                 logger.debug('  - it seems any other mail: suppose as Rakuten.')
                 pickup_type = 'Rakuten'

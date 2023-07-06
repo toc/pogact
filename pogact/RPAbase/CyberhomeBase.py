@@ -17,7 +17,7 @@ class CyberhomeBase(RPAbase.RPAUserService.RPAUserService):
         logger.info(f"Try to login to FNJ(cyberhome mail).")
         # ==============================
         driver.get("https://wmail.cyberhome.ne.jp/login/")
-        logger.debug('  wait for (By.ID, u"username")')
+        logger.debug('  wait for (By.ID, "username")')
         wait.until(EC.visibility_of_element_located((By.ID, "username")))
         u = driver.find_element(By.ID,"username")
         u.clear()
