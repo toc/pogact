@@ -136,12 +136,12 @@ class AOLmail(AOLbase):
 
             logger.debug('受信箱に移動')
             # ------------------------------
-            pageobj = (By.ID, "inboxNode")
+            pageobj = (By.NAME, "msgListForm")
             # logger.debug(f'-- WAIT:visibility_of_element_located({pageobj})')
             # wait.until(EC.visibility_of_element_located(pageobj))
             logger.debug(f'-- WAIT:element_to_be_clickable({pageobj})')
             wait.until(EC.element_to_be_clickable(pageobj))
-            driver.find_element(*pageobj).click()
+            # driver.find_element(*pageobj).click()
 
             self.appdict.data['ptlinks'] = {}
             self.appdict.data['ptlinks'][user['name']] = {}
@@ -154,41 +154,49 @@ class AOLmail(AOLbase):
                 logger.debug('受信箱に移動')
                 # ------------------------------
                 # wait until message list is displayed.
-                pageobj = (By.CSS_SELECTOR,"th.dojoxGrid-cell:nth-child(3)")
+                pageobj = (By.ID,"messageListContainer")
                 logger.debug(f'-- WAIT:visibility_of_element_located({pageobj})')
                 wait.until(EC.visibility_of_element_located(pageobj))
                 # fetch message list.
-                pageobj=(By.CSS_SELECTOR,".dojoxGrid-content")
+                # pageobj=(By.CSS_SELECTOR,".dojoxGrid-content")
                 content = driver.find_element(*pageobj)
-                rows = content.find_elements(By.XPATH,"div/div")
+                rows = content.find_elements(By.XPATH,"tbody/tr")
                 row_count = len(rows)
+                # row_count = 20
                 logger.debug(f'  -- rows:{row_count}')
 
                 for row in rows:
                     row_count -= 1
                     logger.debug('  メールごとの処理')
                     # ------------------------------
-                    ### get subject
-                    pageobj = (By.XPATH,"table/tbody/tr/td[4]")
-                    msg = row.find_element(*pageobj)
-                    subject = msg.text
-                    logger.debug(f'  -- subject[{subject}]')
-                    ### already READ?
-                    wk = row.get_attribute('class').split()
-                    if 'row-read' in wk:
-                        logger.debug(f'  -- This mail is already read.  SKIP.')
+                    if row.get_attribute('data-test-id') is None:
+                        # tr にこの属性↑をもっていなければＳＫＩＰ
                         continue
+                    # ------------------------------
+                    logger.debug(f'- Open message')
+                    pageobj = (By.XPATH,'td')
+                    tds = row.find_elements(*pageobj)
+                    for td in tds:
+                        logger.debug(f'  ==[{td.text}]')
+                    subject = row.text
+                    logger.debug(f'  -- subject[{subject}]')
+                    # ### already READ?
+                    # wk = row.get_attribute('class').split()
+                    # if 'row-read' in wk:
+                    #     logger.debug(f'  -- This mail is already read.  SKIP.')
+                    #     continue
                     ### unread mail is found.  go into the message.
                     mail_unread += 1
-                    msg.click()
-                    pageobj = (By.CSS_SELECTOR,".subject")
+                    row.click()
+                    # pageobj = (By.CSS_SELECTOR,".subject")
+                    pageobj = (By.XPATH,'//*[@id="content"]/table/tbody')
                     logger.debug(f'-- WAIT:visibility_of_element_located({pageobj})')
                     wait.until(EC.visibility_of_element_located(pageobj))
                     wk = driver.find_element(*pageobj)
-                    wk2 = wk.text
-                    logger.debug(f'  -- subject[{wk2}]')
-                    if wk2 != subject[:len(wk2)]:
-                        raise Exception('Subjectが違います')
+                    # wk2 = wk.text
+                    # logger.debug(f'  -- subject[{wk2}]')
+                    # if wk2 != subject[:len(wk2)]:
+                    #     raise Exception('Subjectが違います')
                     ### Fetch URLs in the message.
                     links = []
                     soup = BeautifulSoup(driver.page_source,"lxml")
@@ -203,22 +211,24 @@ class AOLmail(AOLbase):
                             logger.debug(f'--FOUND:a href={wk}')
                     self.appdict.data['ptlinks'][user['name']]['ECnavi'].extend(links)
                     ### mail analisys is completed.  back to mail list.
-                    pageobj = (By.TAG_NAME,"body")
-                    logger.debug(f'-- WAIT:visibility_of_element_located({pageobj})')
-                    wait.until(EC.visibility_of_element_located(pageobj))
-                    if len(links) > 0:
-                        # have link: delete mail
-                        logger.debug(f'-- Found link(s) [{len(links)}].')
-                        wk_key = Keys.DELETE
-                        mail_havelink += 1
-                    else:
-                        # have link: skip mail
-                        logger.debug(f'-- No links.  SKIP!')
-                        wk_key = "x"
-                    driver.find_element(*pageobj).send_keys(wk_key)
+                    # pageobj = (By.TAG_NAME,"body")
+                    # logger.debug(f'-- WAIT:visibility_of_element_located({pageobj})')
+                    # wait.until(EC.visibility_of_element_located(pageobj))
+                    # if len(links) > 0:
+                    #     # have link: delete mail
+                    #     logger.debug(f'-- Found link(s) [{len(links)}].')
+                    #     wk_key = Keys.DELETE
+                    #     mail_havelink += 1
+                    # else:
+                    #     # have no link: skip mail
+                    #     logger.debug(f'-- No links.  SKIP!')
+                    #     wk_key = "x"
+                    # driver.find_element(*pageobj).send_keys(wk_key)
+                    pageobj = (By.XPATH,'//*[@id="msgListForm"]/div/span[1]/button[1]')
+                    driver.find_element(*pageobj).click()
                     break               # End loop: for
 
-                if row_count == 0:
+                if row_count <= 0:
                     # 最終メールまで処理済み→終了
                     wk = ['ECnavi']
                     wk2 = f'New[{mail_unread}]->[{mail_havelink}, SKIP:{mail_unread - mail_havelink}]'
@@ -229,7 +239,7 @@ class AOLmail(AOLbase):
                     break               # End loop: while
                 else:
                     # ファイルを削除した場合は一覧表示の更新を待つ必要あり
-                    time.sleep(5)
+                    time.sleep(1.5)
         except Exception as e:
             logger.error(f'Caught exception while analyzing mails: {self.exception_message(e)}')
             logger.error(f'Raise exception and exit!')

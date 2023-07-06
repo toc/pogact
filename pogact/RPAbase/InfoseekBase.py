@@ -14,20 +14,12 @@ class RakutenBase(RPAUserService):
         driver = self.driver
         wait = self.wait
         logger = self.logger
+        # 楽天ログイン ～ sso対応=infoseek経由
+        logger.info(f"  -- 状況にかかわらずログアウト要求を発行")
+        driver.get("https://www.infoseek.co.jp/logout")
         #
-        # 楽天ログイン ～ sso対応のinfoseek経由で
-        driver.get("https://www.infoseek.co.jp/")
-        if self.is_element_present(By.ID, 'PRmodal'):
-            logger.warn('  PRmodal 発見。閉じます。')
-            driver.execute_script('closePR()')
-        result = self.is_element_present(By.LINK_TEXT, u"ログイン")
-        if result is False:
-            logger.info(f"  -- ログイン中のようなので 一旦 ログアウトします")
-            self.pilot_logout()
-        ####
-        logger.debug('  wait for (By.LINK_TEXT,u"ログイン")')
-        wait.until(EC.element_to_be_clickable((By.LINK_TEXT, u"ログイン")))
-        driver.find_element(By.LINK_TEXT,u"ログイン").click()
+        logger.info(f"  -- あらためてログインを要求")
+        driver.get("https://www.infoseek.co.jp/login")
         #
         po = (By.ID, "scrollingLayer")
         logger.debug(f'  wait for {po}; ログイン画面')

@@ -14,6 +14,9 @@ class AOLbase(RPAbase.RPAbaseRecapture.RPAbaseRecapture):
         wait = self.wait
         logger = self.logger
 
+        #
+        self.pilot_logout(account)
+        #
         logger.info('-- driver.get("https://mail.aol.com/webmail-std/ja-jp/suite")')
         driver.get("https://mail.aol.com/webmail-std/ja-jp/suite")
 
@@ -50,7 +53,7 @@ class AOLbase(RPAbase.RPAbaseRecapture.RPAbaseRecapture):
         logger = self.logger
         result = False
 
-        pageobj = (By.LINK_TEXT, "サインオフ")
+        pageobj = (By.LINK_TEXT, "ログアウト")
         if self.is_element_present(*pageobj) is False:
             logger.debug(f'-- driver.get("https://www.aol.jp/https://mail.aol.com/webmail-std/ja-jp/suite")')
             driver.get("https://mail.aol.com/webmail-std/ja-jp/suite")

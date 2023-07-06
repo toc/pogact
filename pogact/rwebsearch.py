@@ -134,13 +134,20 @@ class RWebSearch(RakutenBase):
                 logger.debug(f'   - Get total search count')
                 # 検索画面のレイアウトが２種類できたみたい。 @20200418
                 # レイアウト変更対応
+                ### before: 20230705
                 objects = driver.find_elements(By.XPATH,'//*[@id="wrapper"]/header/div/div[1]/div[1]/div[2]/div/div[1]/span[2]/em')
                 if len(objects) > 0:
                     logger.debug(f"    - Found: (By.XPATH, '//*[@id=\"wrapper\"]/header/div/div[1]/div[1]/div[2]/div/div[1]/span[2]/em')")
                 else:
-                    # 2023/04/15以前
-                    logger.debug(f"    - Found: (By.XPATH, '//*[@id=\"wrapper\"]/header/div/div/div[2]/div[2]/div[2]/div/div[1]/span[2]/span/em')")
-                    objects = driver.find_elements(By.XPATH,'//*[@id="wrapper"]/header/div/div/div[2]/div[2]/div[2]/div/div[1]/span[2]/span/em')
+                    po = (By.XPATH,'//*[@id="wrapper"]/header/div/div[1]/div[1]/div[2]/div/div[1]/span[2]/span/em')
+                    objects = driver.find_elements(*po)
+                    if len(objects) > 0:
+                        logger.debug(f'    - Found: {po}')
+                    else:
+                        # 2023/04/15以前
+                        logger.debug(f"    - Found: (By.XPATH, '//*[@id=\"wrapper\"]/header/div/div/div[2]/div[2]/div[2]/div/div[1]/span[2]/span/em')")
+                        objects = driver.find_elements(By.XPATH,'//*[@id="wrapper"]/header/div/div/div[2]/div[2]/div[2]/div/div[1]/span[2]/span/em')
+                # logger.debug(f'---- objects:[{objects}]')
                 cnt = objects[0].text
                 logger.debug(f'     Total search count = [{cnt}]')
                 if (int(cnt) >= 30):
