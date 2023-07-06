@@ -362,10 +362,13 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
 
 
     def open_url_tree(self, user):
+        logger = self.logger
+        logger.debug('Cyberhome: open_url_tree: 開始')
         ptlinks = self.appdict.data['ptlinks'][user['name']]
         # print([x for x in ptlinks])
         num_ptlinks = [len(ptlinks[x]) for x in ptlinks]
         # print(num_ptlinks)
+        logger.debug('Cyberhome: open_url_tree: 終了')
         return num_ptlinks
 
 
@@ -381,9 +384,13 @@ class CyberhomeMail(RPAbase.CyberhomeBase.CyberhomeBase):
             self.appdict.data['log'] = {}
         self.appdict.data['log'][user['name']] = []
         #
+        logger.debug(f"  -- self.appdict.data['ptlinks']={self.appdict.data['ptlinks']}")
+        if self.appdict.data['ptlinks'] is None:
+            self.appdict.data['ptlinks'] = {}
         ptlinks = self.appdict.data['ptlinks'].get(user['name'],{})
         self.appdict.data['ptlinks'][user['name']] = ptlinks       # write back
         num_ptlinks = self.open_url_tree(user)
+        logger.debug('Cyberhome未読メール: 解析開始')
         self.appdict.data['log'][user['name']].append(f'Not visited before: [{sum(num_ptlinks)}]')
         logger.info('Cyberhome未読メール: 解析開始')
         # ==============================

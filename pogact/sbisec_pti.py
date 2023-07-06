@@ -123,6 +123,7 @@ class SBISecReport(SBISec):
             pnt_before = driver.find_element(*po).text
             #
             po = (By.ID,'zenbushiyou')          #TODO:
+            # po = (By.ID,'riyoushinai')          #TODO:
             driver.find_element(*po).click()
             #
             po = (By.ID,'pwd3')          #TODO:

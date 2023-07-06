@@ -91,6 +91,8 @@ class Froggy_pti(Froggy):
             logger.debug(f'  wait for {po}')
             wait.until(EC.visibility_of_element_located(po))
             self.save_current_html(stage_name('0'),'html')
+            wk = self.appdict.wkfile(stage_name('_0'), "png")
+            driver.save_screenshot(str(wk))
             # ------------------------------
             logger.debug(f'  - 購入ボタン押下')
             time.sleep(10)
@@ -104,7 +106,7 @@ class Froggy_pti(Froggy):
             logger.debug(f'  - ｄポイント支払いを選択')
             pnt_before = driver.find_element(By.CSS_SELECTOR,"#__layout > div > div > aside > div > div > div > div.orderForm > div:nth-child(1) > div > div > span").text
             po = (By.ID,"payment-type")
-            driver.find_element(*po).click()
+            # driver.find_element(*po).click()
             Select(driver.find_element(*po)).select_by_visible_text(u"保有dポイント")
             # invest_type = driver.find_element(*po).text
             # ------------------------------

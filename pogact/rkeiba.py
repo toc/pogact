@@ -68,7 +68,8 @@ class Rkeiba(RkeibaBase):
         amount = int(user['charge']/100)
         logger.debug(f'  amount: >{str(amount)}<')
         driver.find_element(*po).send_keys(str(amount))
-        po = (By.XPATH, '//*[@id="app"]/div/section/div[2]/section/section/form/div[3]/div/button')
+        # po = (By.XPATH, '//*[@id="app"]/div/section/div[2]/section/section/form/div[3]/div/button')
+        po = (By.CSS_SELECTOR, '.transactionStepActionButton__button')
         driver.find_element(*po).click()
         #
         logger.info('  入金指定確認＆実行！')
@@ -79,7 +80,8 @@ class Rkeiba(RkeibaBase):
         driver.find_element(*po).click()
         driver.find_element(*po).clear()
         driver.find_element(*po).send_keys(user['pin'])
-        po = (By.XPATH, '//*[@id="app"]/div/section/div[2]/section/section/form/div[3]/div/button')
+        # po = (By.XPATH, '//*[@id="app"]/div/section/div[2]/section/section/form/div[3]/div/button')
+        po = (By.CSS_SELECTOR, 'button.transactionStepActionButton__button:nth-child(2)')
         driver.find_element(*po).click()
         logger.debug('  SUBMIT depositing.')
 
