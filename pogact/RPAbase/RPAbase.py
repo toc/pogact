@@ -10,6 +10,7 @@ from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import SessionNotCreatedException
 from selenium.common.exceptions import WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
 import yaml
 from logutils.logger import Logger
 import logutils.mailreporter
@@ -73,7 +74,7 @@ class RPAbase():
             self.reporter = None
 
     # @return: driver, wait
-    def pilot_setup(self, options=None, waitsec=10):
+    def pilot_setup(self, options=None, waitsec=10, disable_password_manager=True):
         """
         Called from pilot().
         Execute web browser, and set up for auto-pilot.
@@ -86,7 +87,15 @@ class RPAbase():
 
         # Ad-hoc workaround for Google Chrome v.93 or later.
         ### See: https://stackoverflow.com/questions/69034343/chromedriver-session-timeouts-in-version-93
-        options.add_argument("--disable-gpu")  
+        if options is None:
+            options = Options()
+        options.add_argument("--disable-gpu")
+        if disable_password_manager is True:
+            prefs = {
+                "credentials_enable_service" : False,
+                "profile.password_manager_enabled" : False
+                }
+            options.add_experimental_option("prefs", prefs)
 
         try:
             ld_webdriver = self.last_done.get('WebDriver',{})

@@ -8,7 +8,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import logutils.AppDict
-from RPAbase.RakutenBase import RakutenBase
+from RPAbase.RWSBase import RakutenBase
+# from RPAbase.InfoseekBase import RakutenBase
 
 
 class RWebSearch(RakutenBase):
@@ -40,6 +41,10 @@ class RWebSearch(RakutenBase):
         appdict.data['today'] = now.replace(hour=0,minute=0,second=0,microsecond=0) 
         appdict.data['need_report'] = 0
         #
+        # self.set_loginurl('https://websearch.rakuten.co.jp/rtoken_login.html?tool_id=1')
+        # self.set_loginurl('https://websearch.rakuten.co.jp/?l-id=top_logo#')
+      
+        #
         # Start !
         logger.info(f"@@@Start {self.appdict.name}({self.appdict.version_string()})")
         logger.debug(f"{appdict.data['today'].strftime('%c')}")
@@ -48,6 +53,7 @@ class RWebSearch(RakutenBase):
     def pilot_setup(self):
         options = Options()
         options.add_extension("4.663_0.crx")                                # 楽天ウェブ検索をインポート
+        # options.add_extension("4.686_0.crx")                                # 楽天ウェブ検索をインポート
         # 楽天Web検索はブラウザ拡張を利用するためheadlessモード不可
         # if not __debug__:
         #     options.add_argument(r'--headless')
@@ -55,7 +61,7 @@ class RWebSearch(RakutenBase):
         options.add_experimental_option('useAutomationExtension', False)
         options.add_experimental_option("excludeSwitches" , ["enable-automation"])  # disable-infobars
 
-        wk = super().pilot_setup(options)
+        wk = super().pilot_setup(options, disable_password_manager=False)
 
         if wk is not None:
             self.driver.switch_to.window(self.driver.window_handles[0])
@@ -77,6 +83,12 @@ class RWebSearch(RakutenBase):
         try:
             logger.debug(f'   - サイトを移動.')
             # ------------------------------
+            if len(driver.window_handles) < 2:
+                logger.debug('   - 新規タブを作成')
+                # ------------------------------
+                driver.execute_script("window.open()")
+            driver.switch_to.window(driver.window_handles[1])
+            #
             driver.get("http://search.yahoo.co.jp/realtime")
             what = '//*[@id="contentsBody"]/div[1]/article[2]/h1'
             logger.debug(f'     wait.until: visibility (By.XPATH, "{what}")')
@@ -90,7 +102,9 @@ class RWebSearch(RakutenBase):
             word_list = driver.find_elements(By.XPATH,what)
             words = [a.text for a in word_list]
             logger.debug(f'     =>{words}')
-
+            #
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0])
         except Exception as e:
             logger.warn(f'   !!<Ignore>:{self.exception_message(e)}')
             words = []
@@ -112,9 +126,7 @@ class RWebSearch(RakutenBase):
         try:
             logger.debug(f'  - サイトを移動.')
             # ------------------------------
-            driver.get("https://websearch.rakuten.co.jp/Web?qt=楽天")
-            logger.debug(f'    wait.until: visibility (By.ID, "srchformtxt_qt")')
-            wait.until(EC.visibility_of_element_located((By.ID, "srchformtxt_qt"))).clear()
+            driver.get("https://websearch.rakuten.co.jp/Web?col=OW&qt=quantum")
 
             logger.debug(f'  - 検索開始.')
             # ------------------------------
@@ -122,14 +134,22 @@ class RWebSearch(RakutenBase):
             for word in words:
                 logger.debug(f'   - Search Keyword: {word}')
                 # ------------------------------
-                logger.debug(f'     (Wainting for (By.ID, "srchformtxt_qt")')
-                kwarea = wait.until(EC.visibility_of_element_located((By.ID, "srchformtxt_qt")))
+                po = (By.CSS_SELECTOR,'#srchformtxt_qt')
+                logger.debug(f'     (Wainting for {po}')
+                kwarea = wait.until(EC.visibility_of_element_located(po))
                 kwarea.clear()
                 kwarea.send_keys(word, Keys.ENTER)
-
-                logger.debug(f'     (Wainting for (By.CLASS_NAME, "progress-message")')
-                mes = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "progress-message"))).text
-                logger.debug(f'   - Search Result: {mes}')
+                # driver.get("https://websearch.rakuten.co.jp/Web?col=OW&qt=" + word)
+                
+                po = (By.CLASS_NAME, "progress-message")
+                if self.is_element_present(*po):
+                    # loger.debug(f'     (Wainting for {po}')
+                    # mes = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "progress-message"))).text
+                    # mes = wait.until(EC.visibility_of_element_located(po)).text
+                    mes = driver.find_element(*po).text
+                else:
+                    mes = 'NOT Exsits (Maybe full searched).'
+                logger.debug(f'   - Search Result: {mes.rstrip()}')
 
                 logger.debug(f'   - Get total search count')
                 # 検索画面のレイアウトが２種類できたみたい。 @20200418
@@ -158,6 +178,8 @@ class RWebSearch(RakutenBase):
         except Exception as e:
             logger.warn(f' !!<Ignore>:{self.exception_message(e)}')
 
+        # driver.close()
+        # driver.switch_to.window(driver.window_handles[0])
         logger.debug(f' - @search_rws(): END')
         return int(cnt)
 
@@ -175,6 +197,11 @@ class RWebSearch(RakutenBase):
         logger.debug(f"   {account['name']}: today={appdict.data['today']} vs last={last_done}")
         if appdict.data['today'] > last_done:
             appdict.data['need_report'] += 1
+
+            # logger.debug(f' - 楽天Web検索にログイン - My Rakuten でログイン直後に実行.')
+            # # ==============================
+            # self.driver.find_element(By.LINK_TEXT,'楽天ウェブ検索').click()
+            # self.driver.find_element(By.NAME,'qt').send_keys(Keys.ENTER)
 
             logger.debug(f' - 急上昇ワードを取得.')
             # ==============================
