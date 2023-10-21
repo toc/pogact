@@ -70,7 +70,7 @@ class AOLbase(RPAbase.RPAbaseRecapture.RPAbaseRecapture):
             # driver.find_element(*pageobj).click()
 
             try:
-                pageobj = (By.PARTIAL_LINK_TEXT, 'Login / Join')
+                pageobj = (By.PARTIAL_LINK_TEXT, 'row_count = len(rows)')
                 logger.debug(f'-- wait for [{pageobj}]')
                 wait.until(EC.visibility_of_element_located(pageobj))
             except TimeoutException as e:

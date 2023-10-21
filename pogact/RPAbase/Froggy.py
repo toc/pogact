@@ -32,10 +32,14 @@ class Froggy(RPAUserService):
         driver.find_element(*po).send_keys(account['pw'])
         logger.debug("  -- Click SUBMIT.")
         po = (By.XPATH,"//input[@value='ログインする']")
-        # po = (By.CSS_SELECTOR,"#__layout > div > div > aside > div > div > div > div > form > div.align-center > input")
         driver.find_element(*po).click()
-
-        # po = (By.CSS_SELECTOR,'#__layout > div > header > div')
+        #
+        ## Treat popup, if exits.
+        po = (By.XPATH,"//div[@id='__layout']/div/div/aside/div/div/div/div/div[2]/button")
+        if self.is_element_present(*po):
+            logger.info(f"  Found: Popup[{po}] -> click()")
+            driver.find_element(*po).click()
+        #
         po = (By.LINK_TEXT,'マイ資産')
         logger.debug(f"  wait for {po}")
         wait.until(EC.visibility_of_element_located(po))
