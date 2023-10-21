@@ -10,7 +10,7 @@ class RakutenBase(RPAUserService):
     """
     """
     def pilot_login(self, account):
-        """ 楽天ウェブサーチにログイン(via Infoseek) """
+        """ 楽天インフォシークにログイン(via Infoseek) """
         driver = self.driver
         wait = self.wait
         logger = self.logger
@@ -29,9 +29,8 @@ class RakutenBase(RPAUserService):
         wait.until(EC.visibility_of_element_located(po))
         driver.find_element(*po).clear()
         driver.find_element(*po).send_keys(account['id'])
-        po = (By.CSS_SELECTOR, "#cta > div")
-        logger.debug(f'  wait for {po}; 次へ')
-        # wait.until(EC.visibility_of_element_located(po))
+        po = (By.CSS_SELECTOR, "#cta001 > div > div")
+        logger.debug(f'  -- {po}; 次へ')
         driver.find_element(*po).click()
         # ----
         po = (By.CSS_SELECTOR, "#password_current")
@@ -42,7 +41,7 @@ class RakutenBase(RPAUserService):
         driver.find_element(*po).send_keys(Keys.ENTER)
         ###
         po = (By.LINK_TEXT, "ログアウト")
-        logger.debug(f'  wait for {po}')
+        logger.debug(f'  wait for {po}; ログアウトへのリンク')
         wait.until( EC.visibility_of_element_located(po))
         #
         return self.is_element_present(*po)
@@ -53,6 +52,7 @@ class RakutenBase(RPAUserService):
         wait = self.wait
 
         ### Logout
+        logger.info(f"  -- ログアウト要求を発行")
         driver.get("https://www.infoseek.co.jp/logout")
         #
         return True
