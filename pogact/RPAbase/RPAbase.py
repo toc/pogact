@@ -230,5 +230,6 @@ class RPAbase():
             raise AssertionError(f"Unexpected result: >{b}<")
         return True
 
-    def exception_message(self, e):
-        return f'Caught Exception: {type(e)} {e.args if hasattr(e,"args") else str(e)}'
+    def exception_message(self, e, msg = None):
+        str = 'Caught Exception:' if msg is not None else msg
+        return f'{msg} {type(e)} {e.args if hasattr(e,"args") else str(e)}'

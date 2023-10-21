@@ -191,18 +191,3 @@ if __name__ == "__main__":
                 pprint.pformat(result, width=40)
             )
 
-# if __name__ == "__main__":
-#     try:
-#         from operator import itemgetter
-#         App = RBankCampaign()
-#         App.prepare()
-#         App.pilot()
-#         App.pilot_result.sort(key=itemgetter(0))
-#         App.report(
-#             pprint.pformat(App.pilot_result, width=40)
-#         )
-#         App.tearDown()
-#     except Exception as e:
-#         print(f'Caught Exception: {type(e)} {e.args if hasattr(e,"args") else str(e)}')
-#         if App.driver is not None:
-#             App.driver.quit()

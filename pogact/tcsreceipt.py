@@ -49,7 +49,8 @@ class TCSReceipt(RPAbase.TimesCarShare.TimesCarShare):
             "download.default_directory": self.appdict.data['download_dir'],
             "plugins.always_open_pdf_externally": True
         })
-        super(TCSReceipt, self).pilot_setup(options)
+        return super().pilot_setup(options)
+
 
     def pilot_internal1(self):
         """
@@ -141,8 +142,10 @@ class TCSReceipt(RPAbase.TimesCarShare.TimesCarShare):
 
         try:
             all_users = self.config.get(r'TimesCarShare', [])
+            logger.debug(f'  -- {all_users}')
             target_users = self.config.get(appdict.name, [])
             for user in all_users:
+                logger.debug(f'  -- try {user}')
                 if user['name'] not in target_users:
                     # 実行対象外ユーザはスキップ
                     continue
@@ -153,11 +156,13 @@ class TCSReceipt(RPAbase.TimesCarShare.TimesCarShare):
                 if self.pilot_login(user):
                     num, detail_dict = self.pilot_internal1()
 
-                    now = datetime.datetime.now()
-                    diff = relativedelta(months=2) if now.day <= 10 else relativedelta(months=1)
-                    target_day = now - diff 
-                    logger.debug(f'  - taget: {target_day.year}/{target_day.month}')
-                    sts = self.pilot_internal2(detail_dict, target_day.year, target_day.month)
+                    # now = datetime.datetime.now()
+                    # diff = relativedelta(months=2) if now.day <= 10 else relativedelta(months=1)
+                    # target_day = now - diff 
+                    # logger.debug(f'  - taget: {target_day.year}/{target_day.month}')
+                    # sts = self.pilot_internal2(detail_dict, target_day.year, target_day.month)
+                    for mm in range(1,12):
+                        sts = self.pilot_internal2(detail_dict, 2022, mm)
 
                     self.pilot_logout()
                 else:
