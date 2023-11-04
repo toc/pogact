@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from RPAbase.RPAUserService import RPAUserService
 
 
@@ -13,7 +14,7 @@ class RkeibaBase(RPAUserService):
         driver = self.driver
         wait = self.wait
         logger = self.logger
-
+        #
         driver.get("https://keiba.rakuten.co.jp/")
         logger.debug('  wait for (By.LINK_TEXT, u"トップ")')
         wait.until(EC.visibility_of_element_located((By.LINK_TEXT, u"トップ")))
@@ -27,16 +28,23 @@ class RkeibaBase(RPAUserService):
         logger.debug('  wait for (By.LINK_TEXT,u"マイページログイン")')
         wait.until(EC.element_to_be_clickable((By.LINK_TEXT, u"マイページログイン")))
         driver.find_element(By.LINK_TEXT,"マイページログイン").click()
-        # with codecs.open("temp.html", "w", "cp932", 'ignore') as f:
-        #     f.write(driver.page_source)
-        logger.debug('  wait for (By.ID, "loginInner_u")')
-        wait.until(EC.element_to_be_clickable((By.ID, "loginInner_u")))
-        driver.find_element(By.ID,"loginInner_u").clear()
-        driver.find_element(By.ID,"loginInner_u").send_keys(account['id'])
-        driver.find_element(By.ID,"loginInner_p").clear()
-        driver.find_element(By.ID,"loginInner_p").send_keys(account['pw'])
-        driver.find_element(By.NAME,"submit").click()
-        logger.debug('  SUBMIT login.')
+        #
+        po = (By.ID, "scrollingLayer")
+        logger.debug(f'  wait for {po}; ログイン画面')
+        wait.until(EC.visibility_of_element_located(po))
+        po = (By.CSS_SELECTOR, "#user_id")
+        logger.debug(f'  wait for {po}; ユーザ入力')
+        wait.until(EC.visibility_of_element_located(po))
+        driver.find_element(*po).clear()
+        driver.find_element(*po).send_keys(account['id'])
+        driver.find_element(*po).send_keys(Keys.ENTER)
+        # ----
+        po = (By.CSS_SELECTOR, "#password_current")
+        logger.debug(f'  wait for {po}; PW入力')
+        wait.until(EC.visibility_of_element_located(po))
+        driver.find_element(*po).clear()
+        driver.find_element(*po).send_keys(account['pw'])
+        driver.find_element(*po).send_keys(Keys.ENTER)
         ###
         logger.debug('  wait for link_text "ログアウト"')
         wait.until(
@@ -50,18 +58,14 @@ class RkeibaBase(RPAUserService):
         driver = self.driver
         logger = self.logger
         wait = self.wait
-
-        ### 楽天競馬のオートパイロットからパクリ
+        #
+        ### Logout
+        logger.info(f"  -- 状況にかかわらずログアウト要求を発行")
+        driver.get("https://bet.keiba.rakuten.co.jp/login/logout")
+        po = (By.CSS_SELECTOR,'#container > div.logoutbody > p')
+        wk1 = driver.find_element(*po).text
+        self.assertEqual('ログアウトしました',wk1)
+        #
         driver.get("https://keiba.rakuten.co.jp/")
-        wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '.glonavmain')))
-        if self.is_element_present(By.ID, 'PRmodal'):
-            logger.warn('  PRmodal 発見。閉じます。')
-            driver.execute_script('closePR()')
-        result = self.is_element_present(By.LINK_TEXT, u"ログアウト")
-        logger.debug(f"  -- LINK_TEXT[ログアウト] exists? {result}")
-        if result is True:
-            logger.debug(f"  -- Try to click ログアウト link.")
-            driver.find_element(By.LINK_TEXT,"ログアウト").click()
-        else:
-            logger.debug(f"  -- Do nothing and exit.")
-        return result
+        #
+        return True
