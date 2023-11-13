@@ -9,6 +9,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import SessionNotCreatedException
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 import yaml
@@ -105,7 +106,8 @@ class RPAbase():
             driver_path = previous[0]
 
             logger.debug(f"  driver_path: {driver_path}")
-            self.driver = webdriver.Chrome(driver_path, options=options)
+            services = ChromeService(driver_path)
+            self.driver = webdriver.Chrome(service=services, options=options)
         except (SessionNotCreatedException, OSError) as e:
             """
             SessionNotCreatedException:　Chromeのバージョンアップを想定しWebDriverのバージョンアップを試みる。
@@ -120,10 +122,11 @@ class RPAbase():
                 logger.debug(f"  -- download_and_install() == Try to update driver")
                 # driver_path = cdm.download_and_install()[0]
                 driver_path = cdm.install()
+                services = ChromeService(driver_path)
                 ld_webdriver['Chrome'] = [driver_path,datetime.datetime.now()]
                 self.last_done['WebDriver'] = ld_webdriver
                 logger.debug(f"  driver_path: {driver_path}")
-                self.driver = webdriver.Chrome(driver_path, options=options)
+                self.driver = webdriver.Chrome(service=services, options=options)
             except Exception as e:
                 # msg += f" -- {type(e)}: {e.msg}\n"
                 logger.critical(f'  !! Cannot update ChromeDriver.  {self.exception_message(e)}')
