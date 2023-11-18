@@ -83,8 +83,11 @@ class Froggy_pti(Froggy):
             logger.info( f'  対象投信へ移動')
             # ==============================
             logger.debug(f'  - ファンド絞り込み')
-            # fund_number = "1554"
-            fund_number = "5020"
+            # fund_number = "1554"     # ETF
+            # fund_number = "5020"     # ENEOS
+            # fund_number = "8848"     # Leopalace
+            fund_number = "9432"     # ＮＴＴ
+            # fund_number = "8593"     # 三菱ＨＣＣ
             url = "https://froggy.smbcnikko.co.jp/stock/" + fund_number      # TODO:
             driver.get(url)
             po = (By.TAG_NAME,'body')
