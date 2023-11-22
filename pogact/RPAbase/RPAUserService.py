@@ -9,8 +9,8 @@ class RPAUserService(RPAbase.RPAbase.RPAbase):
     """
 
     def prepare(self, name=__name__):
-        super().prepare(name)
         random.seed()
+        return super().prepare(name)
 
     def pilot(self, user_group_name, service_group_name):
         driver, wait = self.pilot_setup()
