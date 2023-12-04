@@ -75,7 +75,9 @@ class Froggy_pti(Froggy):
             logger.debug(f'  - マイ資産で確認')
             url = "https://froggy.smbcnikko.co.jp/myasset/"
             driver.get(url)
-            po = (By.XPATH,'//*[@id="__layout"]/div/main/div/div/div/section[2]/div/table/tbody/tr[2]')
+            po = (By.XPATH,'/html/body/div[1]/div/div/main/div/div/div/section[1]/div/section[2]/div/div/div[2]/div/div[2]/span/span')
+            # .point-value > span:nth-child(1) > span:nth-child(1)
+            # /html/body/div[1]/div/div/main/div/div/div/section[1]/div/section[2]/div/div/div[2]/div/div[2]/span/span
             d_pt = driver.find_element(*po).text
             resmsg = f'pt infos:{d_pt}]'
             self.result.append(resmsg)
