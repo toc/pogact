@@ -11,6 +11,7 @@
 			},
 			"plantuml.render": "PlantUMLServer",
 			"plantuml.server": "https://www.plantuml.com/plantuml",
+			"python.defaultInterpreterPath": "C:\\Users\\user\\Documents\\src\\pogact\\.venv\\Scripts\\python.exe",
 	},
 	"launch": {
 		"version": "0.2.0",
@@ -24,5 +25,9 @@
 				"console": "integratedTerminal"
 			}
 		]
+	},
+	"python": {
+		"defaultInterpreterPath": "C:\\Users\\user\\Documents\\src\\pogact\\.venv\\Scripts\\python.exe"
 	}
+	
 }

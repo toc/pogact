@@ -10,7 +10,7 @@ from selenium.common.exceptions import NoAlertPresentException
 from selenium.common.exceptions import SessionNotCreatedException
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.service import Service as ChromeService
-from webdriver_manager.chrome import ChromeDriverManager
+# from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 import yaml
 from logutils.logger import Logger
@@ -99,39 +99,40 @@ class RPAbase():
             options.add_experimental_option("prefs", prefs)
 
         try:
-            ld_webdriver = self.last_done.get('WebDriver',{})
-            logger.debug(f"  -- last_done.webdriver: {ld_webdriver}")
-            previous = ld_webdriver.get('Chrome',['',datetime.datetime.min])
-            logger.debug(f"  -- get_download_path() == Re-use driver.")
-            driver_path = previous[0]
+            # ld_webdriver = self.last_done.get('WebDriver',{})
+            # logger.debug(f"  -- last_done.webdriver: {ld_webdriver}")
+            # previous = ld_webdriver.get('Chrome',['',datetime.datetime.min])
+            # logger.debug(f"  -- get_download_path() == Re-use driver.")
+            # driver_path = previous[0]
 
-            logger.debug(f"  driver_path: {driver_path}")
-            services = ChromeService(driver_path)
-            self.driver = webdriver.Chrome(service=services, options=options)
+            # logger.debug(f"  driver_path: {driver_path}")
+            # services = ChromeService(driver_path)
+            # self.driver = webdriver.Chrome(service=services, options=options)
+            self.driver = webdriver.Chrome(options=options)
         except (SessionNotCreatedException, OSError) as e:
             """
-            SessionNotCreatedException:　Chromeのバージョンアップを想定しWebDriverのバージョンアップを試みる。
+            SessionNotCreatedException: Chromeのバージョンアップを想定しWebDriverのバージョンアップを試みる。
             OSError: ChromeDriver 未取得の可能性あるため取得を試みる。
             """
             logger.warn(f'  !! {type(e)}: {e.args if hasattr(e,"args") else e}')
             msg += f"Maybe unmatch chromewebdriver, And try to update chrome driver... <{sys._getframe().f_lineno}@{__file__}>"
             logger.warn(f'  !! {msg}')
 
-            try:
-                cdm = ChromeDriverManager()
-                logger.debug(f"  -- download_and_install() == Try to update driver")
-                # driver_path = cdm.download_and_install()[0]
-                driver_path = cdm.install()
-                services = ChromeService(driver_path)
-                ld_webdriver['Chrome'] = [driver_path,datetime.datetime.now()]
-                self.last_done['WebDriver'] = ld_webdriver
-                logger.debug(f"  driver_path: {driver_path}")
-                self.driver = webdriver.Chrome(service=services, options=options)
-            except Exception as e:
-                # msg += f" -- {type(e)}: {e.msg}\n"
-                logger.critical(f'  !! Cannot update ChromeDriver.  {self.exception_message(e)}')
-                msg += f"\n!! Cannot update ChromeDriver. <{sys._getframe().f_lineno}@{__file__}>.  Exit."
-                msg += "\n"
+            # try:
+            #     cdm = ChromeDriverManager()
+            #     logger.debug(f"  -- download_and_install() == Try to update driver")
+            #     # driver_path = cdm.download_and_install()[0]
+            #     driver_path = cdm.install()
+            #     services = ChromeService(driver_path)
+            #     ld_webdriver['Chrome'] = [driver_path,datetime.datetime.now()]
+            #     self.last_done['WebDriver'] = ld_webdriver
+            #     logger.debug(f"  driver_path: {driver_path}")
+            #     self.driver = webdriver.Chrome(service=services, options=options)
+            # except Exception as e:
+            #     # msg += f" -- {type(e)}: {e.msg}\n"
+            #     logger.critical(f'  !! Cannot update ChromeDriver.  {self.exception_message(e)}')
+            #     msg += f"\n!! Cannot update ChromeDriver. <{sys._getframe().f_lineno}@{__file__}>.  Exit."
+            #     msg += "\n"
         except WebDriverException as e:
             msg += f" -- {self.exception_message(e)}\n"
             msg += f"!! Cannot instantiate WebDriver<{sys._getframe().f_lineno}@{__file__}>.  Exit.\n"
