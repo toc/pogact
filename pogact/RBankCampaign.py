@@ -73,7 +73,7 @@ class RBankCampaign(RBankBase):
             self.save_current_html('_0','html')
             # ------------------------------
             logger.debug( f'  - 商品･サービス一覧')
-            po = (By.LINK_TEXT,'商品･サービス一覧')
+            po = (By.PARTIAL_LINK_TEXT,'サービス一覧')
             wait.until(EC.element_to_be_clickable(po))
             driver.find_element(*po).click()
             self.save_current_html('_1','html')
@@ -120,7 +120,7 @@ class RBankCampaign(RBankBase):
 
         logger.debug(f'  - キャンペーン一覧を探索')
         # ==============================
-        po = (By.XPATH,'/html/body/center[2]/table/tbody/tr/td/table/tbody/tr/td')
+        po = (By.XPATH,'/html/body/center[4]/table/tbody/tr/td/table/tbody/tr/td')
         wait.until(EC.visibility_of_element_located(po))
         tbl_td = driver.find_element(*po)
         po = (By.XPATH,'form')

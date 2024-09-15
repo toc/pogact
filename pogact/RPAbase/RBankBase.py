@@ -43,7 +43,7 @@ class RBankBase(RPAbase.RPAUserService.RPAUserService):
         logger.info( f'  楽天銀行からログアウト')
         # ==============================
         logger.debug(f'  - 移動: 商品･サービス一覧')
-        po = (By.LINK_TEXT,'商品･サービス一覧')
+        po = (By.PARTIAL_LINK_TEXT,'サービス一覧')
         wait.until(EC.element_to_be_clickable(po))
         driver.find_element(*po).click()
         # ------------------------------
@@ -54,7 +54,8 @@ class RBankBase(RPAbase.RPAUserService.RPAUserService):
         driver.find_element(*pageobj).click()
         # ------------------------------
         logger.debug(f'  - 継続確認: ログアウト')
-        pageobj = (By.CSS_SELECTOR,'#LOGOUT_COMFIRM')            
+        # pageobj = (By.CSS_SELECTOR,'#LOGOUT_COMFIRM')            
+        pageobj = (By.CSS_SELECTOR,'#j_id_3a')            
         result = self.is_element_present(*pageobj)
         logger.debug(f'  wait for {pageobj}')
         logger.debug(f"  -- {pageobj} exists? {result}")
